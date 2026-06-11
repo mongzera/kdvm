@@ -1,15 +1,13 @@
-# --- MAIN PROGRAM ---
 PUSH 15
 PUSH 20
 
-# Call the "is_less_than" subroutine (located at instruction index 8)
+# Call the "is_less_than" subroutine (Instruction Index 8)
 CALL 8
 
-# Print the result returned on the stack (1 = True, 0 = False)
+# Print the boolean result (1 = True, 0 = False)
 OUT
 HALT
 
 # --- SUBROUTINE: is_less_than (Index 8) ---
-# Stack incoming: [15, 20]
-CMPLT   # Compares them, pushes 1 if 15 < 20
-RET     # Jumps back to line 5
+CMPLT   # Pushes 1 if 15 < 20
+RET     # Returns to main

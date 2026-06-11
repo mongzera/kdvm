@@ -1,6 +1,5 @@
 #include "kdvm.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -42,7 +41,7 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "MUL") == 0)   *pc = OP_MUL;
         else if (strcmp(command, "DIV") == 0)   *pc = OP_DIV;
 
-        // Memory & Comparisons
+        // Memory & Comparisons & Return Callstack
         else if (strcmp(command, "STORE") == 0) *pc = OP_STORE;
         else if (strcmp(command, "LOAD") == 0)  *pc = OP_LOAD;
         else if (strcmp(command, "CMPEQ") == 0) *pc = OP_CMPEQ;
