@@ -79,6 +79,9 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `FOUT` - Pops and prints a float to the terminal.
 * `IN` - Pauses execution, waits for user integer input, pushes to stack.
 
+The program starts with a main sub-routine and it should be named ::_global.
+This is a reserved subroutine name so that the VM knows where to start executing the program.
+
 ## 💻 Example Code (`test.kdm`)
 
 Here is an example program that uses functions and comparisons to check if 15 is less than 20:
