@@ -1,0 +1,29 @@
+::fib
+    # stack: n
+
+    DUP
+    PUSH 2
+    CMPLT
+    JNZ 7
+
+    RET
+
+    DUP
+    PUSH 1
+    SUB
+    CALL fib
+
+    SWAP
+    PUSH 2
+    SUB
+    CALL fib
+
+    ADD
+    RET
+
+
+::_global
+    PUSH 5
+    CALL fib
+    OUT
+    HALT

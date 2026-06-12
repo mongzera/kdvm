@@ -71,8 +71,8 @@ int load_kdm_file(const char* filename, VM* vm) {
 
     // create hashmap for sub-routines
     struct hashmap *subroutine_map = hashmap_new(64, 0, 0, 0, subroutine_hash, subroutine_cmp, NULL, NULL);
-
-    // main subroutine
+    struct subroutine_ctx *current_subroutine = 0;
+    // entry subroutine
     struct subroutine_ctx *subroutine_global = 0;
 
     // check whether a new subroutine was started without calling RET
@@ -108,6 +108,9 @@ int load_kdm_file(const char* filename, VM* vm) {
 
             hashmap_set(subroutine_map, subroutine);
 
+            // set to current subroutine
+            current_subroutine = subroutine;
+
             // check if subroutine is ::_global
             if(strcmp(subroutine_name, "_global") == 0){
                 subroutine_global = subroutine;
@@ -121,6 +124,8 @@ int load_kdm_file(const char* filename, VM* vm) {
         // Base & Integer
         if (strcmp(command, "HALT") == 0) EMIT(OP_HALT);
         else if (strcmp(command, "POP") == 0)   EMIT(OP_POP);
+        else if (strcmp(command, "DUP") == 0)   EMIT(OP_DUP);
+        else if (strcmp(command, "SWAP") == 0)  EMIT(OP_SWAP);
         else if (strcmp(command, "ADD") == 0)   EMIT(OP_ADD);
         else if (strcmp(command, "SUB") == 0)   EMIT(OP_SUB);
         else if (strcmp(command, "MUL") == 0)   EMIT(OP_MUL);
@@ -132,11 +137,6 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "CMPEQ") == 0) EMIT(OP_CMPEQ);
         else if (strcmp(command, "CMPLT") == 0) EMIT(OP_CMPLT);
         else if (strcmp(command, "RET") == 0)  {
-            if(!defining_subroutine){
-                parse_error("Cannot end with RET without defining a sub-routine! Line %d", line_num);
-                fclose(file);
-                return -1;
-            }
             defining_subroutine = false;
             EMIT(OP_RET);
         }
@@ -153,10 +153,13 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "FDIV") == 0)  EMIT(OP_FDIV);
 
         // Parameterized Commands (Require an integer argument)
-        else if (strcmp(command, "PUSH") == 0 || strcmp(command, "JUMP") == 0 || strcmp(command, "JIF") == 0) {
-            EMIT( (strcmp(command, "PUSH") == 0) ? OP_PUSH :
-                  (strcmp(command, "JUMP") == 0) ? OP_JUMP :
-                                                   OP_JIF);
+        else if (strcmp(command, "PUSH") == 0 || strcmp(command, "JUMP") == 0 || strcmp(command, "JNZ") == 0 || strcmp(command, "JZ") == 0) {
+            uint32_t opcode = ( (strcmp(command, "PUSH") == 0) ? OP_PUSH :
+                                (strcmp(command, "JUMP") == 0) ? OP_JUMP :
+                                (strcmp(command, "JZ")   == 0) ? OP_JZ :
+                                                                OP_JNZ);
+
+            EMIT(opcode);
 
             int value;
             if (sscanf(cursor, "%d", &value) != 1) {
@@ -164,7 +167,8 @@ int load_kdm_file(const char* filename, VM* vm) {
                 fclose(file); return -1;
             }
 
-            EMIT((uint32_t)value);
+            if(opcode == OP_PUSH) EMIT((uint32_t)value);
+            else EMIT((uint32_t)value + current_subroutine->program_line);
         }
 
         // Parameterized Command (Require a float argument)

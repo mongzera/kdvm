@@ -48,7 +48,8 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `HALT` - Stop execution cleanly.
 * `PUSH <val>` - Push an integer onto the stack.
 * `POP` - Remove the top value from the stack.
-
+* `DUP` - Duplicates the top value of the stack and pushing it.
+* `SWAP` - Swaps 2 top values in the stack
 ### Integer Arithmetic
 
 * `ADD` / `SUB` / `MUL` / `DIV` - Pops top two values, performs math, pushes result.
@@ -65,8 +66,9 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 
 ### Control Flow
 
-* `JUMP <addr>` - Unconditionally jump `PC` to target address.
-* `JIF <addr>` - Pops condition. If != 0, jump `PC` to target address.
+* `JUMP <addr>` - Unconditionally jump `PC` to target address relative to sub-routine.
+* `JNZ <addr>` - Pops condition. If != 0, jump `PC` to target address relative to sub-routine.
+* `JZ <addr>` - Pops condition. If == 0, jump `PC` to target address relative to sub-routine.
 * `CMPEQ` - Pops two values. Pushes `1` if equal, `0` otherwise.
 * `CMPLT` - Pops two values. Pushes `1` if A < B, `0` otherwise.
 

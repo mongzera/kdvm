@@ -17,9 +17,15 @@ int control_flow_vm_execute(VM* vm, uint32_t opcode){
             break;
         }
         case OP_JUMP: vm->pc = vm->program[vm->pc]; break;
-        case OP_JIF: {
+        case OP_JNZ: {
             uint32_t target = vm->program[vm->pc++];
             if (vm->stack[vm->sp--] != 0) vm->pc = target;
+            break;
+        }
+
+        case OP_JZ: {
+            uint32_t target = vm->program[vm->pc++];
+            if (vm->stack[vm->sp--] == 0) vm->pc = target;
             break;
         }
 

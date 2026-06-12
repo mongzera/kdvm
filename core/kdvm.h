@@ -34,6 +34,8 @@ typedef enum {
     OP_PUSH   = OPT_MEMSTACK | 0x01,
     OP_POP    = OPT_MEMSTACK | 0x02,
     OP_PEEK   = OPT_MEMSTACK | 0x03,
+    OP_DUP    = OPT_MEMSTACK | 0x04,
+    OP_SWAP   = OPT_MEMSTACK | 0x05,
 
     // Integer Arithmetic
     OP_ADD    = OPT_IMATH | 0x00,
@@ -51,9 +53,10 @@ typedef enum {
 
     // Control Flow & Subroutines
     OP_JUMP   = OPT_CONTROL | 0x00,
-    OP_JIF    = OPT_CONTROL | 0x01,
-    OP_CMPEQ  = OPT_CONTROL | 0x02,
-    OP_CMPLT  = OPT_CONTROL | 0x03,
+    OP_JNZ    = OPT_CONTROL | 0x01,
+    OP_JZ     = OPT_CONTROL | 0x02,
+    OP_CMPEQ  = OPT_CONTROL | 0x03,
+    OP_CMPLT  = OPT_CONTROL | 0x04,
     OP_CALL   = OPT_CONTROL | 0x0A,
     OP_RET    = OPT_CONTROL | 0x0B,
 

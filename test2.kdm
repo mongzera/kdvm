@@ -11,5 +11,10 @@
 
     CALL add_5
     CALL add_6
-    ADD
+    JZ 10
+    PUSH 9
+    OUT
+    HALT
+
+    PUSH 7
     OUT
