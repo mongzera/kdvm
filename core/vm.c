@@ -13,6 +13,7 @@ void vm_init(VM* vm) {
 }
 
 int vm_execute(VM* vm) {
+    vm->pc = vm->_global_start;
     while (1) {
 
         uint32_t opcode = vm->program[vm->pc++];

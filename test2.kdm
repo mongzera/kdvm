@@ -1,0 +1,15 @@
+::add_5
+    PUSH 5
+    RET
+
+::add_6
+    PUSH 6
+    RET
+
+
+::_global
+
+    CALL add_5
+    CALL add_6
+    ADD
+    OUT

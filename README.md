@@ -72,7 +72,8 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 
 ### Subroutines & I/O
 
-* `CALL <addr>` - Push current `PC` to Call Stack, jump to target.
+* `::<subroutine>` - is how we define a sub-routine. It is basically just an index. All sub-routine must end with a `RET`
+* `CALL <subroutine>` - Push current `PC` to Call Stack, jump to target.
 * `RET` - Pop address from Call Stack and return `PC` there.
 * `OUT` - Pops and prints an integer to the terminal.
 * `FOUT` - Pops and prints a float to the terminal.
@@ -84,22 +85,25 @@ Here is an example program that uses functions and comparisons to check if 15 is
 
 ```text
 # --- MAIN PROGRAM ---
-PUSH 15
-PUSH 20
 
-# Call the "is_less_than" subroutine (Instruction Index 8)
-CALL 8
-
-# Print the boolean result (1 = True, 0 = False)
-OUT
-HALT
+# --- SUBROUTINE:item_a Print the boolean result (1 = True, 0 = False)
+::print
+    OUT
+    HALT
+    RET
 
 # --- SUBROUTINE: is_less_than (Index 8) ---
-CMPLT   # Pushes 1 if 15 < 20
-RET     # Returns to main
+::is_less_than
+    CMPLT   # Pushes 1 if 15 < 20
+    RET     # Returns to main
+    
+::_global
+    PUSH 15
+    PUSH 20
 
-```
-
-```
+    # Call the "::is_less_than" subroutine
+    CALL is_less_than
+    CALL print
+    RET
 
 ```

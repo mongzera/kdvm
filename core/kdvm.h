@@ -3,11 +3,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "vm_handler.h"
 
 #define PROGRAM_MEM 1024
 #define STACK_MEM   256
 #define RAM_MEM     256
 #define CALL_STACK_MEM 64 // New: Dedicated stack for function return addresses
+#define MAX_HANDLES 64
 
 typedef enum {
     EXEC_ERR = -1,
@@ -18,13 +20,11 @@ typedef enum {
 typedef enum{
     OPT_MEMSTACK = 0x00,
     OPT_IMATH = 0x10,
-    OPT_FMATH = 0x50,
-
     OPT_MEM = 0x20,
-
     OPT_CONTROL = 0x30,
-
     OPT_IO = 0x40,
+    OPT_FMATH = 0x50,
+    OPT_SYSCALL = 0x60
 
 } OPCODE_TYPE;
 
@@ -67,7 +67,11 @@ typedef enum {
     OP_FADD   = OPT_FMATH | 0x01,
     OP_FSUB   = OPT_FMATH | 0x02,
     OP_FMUL   = OPT_FMATH | 0x03,
-    OP_FDIV   = OPT_FMATH | 0x04
+    OP_FDIV   = OPT_FMATH | 0x04,
+
+    OP_SYS_READ   = OPT_SYSCALL | 0x01,
+    OP_SYS_WRITE  = OPT_SYSCALL | 0x02,
+
 } OpCodes;
 
 // The encapsulated VM State
@@ -77,9 +81,13 @@ typedef struct {
     uint32_t ram[RAM_MEM];
     uint32_t call_stack[CALL_STACK_MEM];
 
+    VM_Handle handle[MAX_HANDLES];
+
     uint32_t pc;    // Program Counter
     int32_t  sp;    // Stack Pointer
-    int32_t  csp;   // Call Stack Pointer (for functions)
+    int32_t  csp;   // Call Stack Pointer
+
+    uint32_t _global_start;
 
     int program_size;
 } VM;

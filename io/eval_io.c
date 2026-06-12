@@ -15,3 +15,5 @@ int io_vm_execute(VM *vm, uint32_t opcode){
 
     return EXEC_CONTINUE;
 }
+
+// TODO: Implement Basic IO using MMIO

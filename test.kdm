@@ -1,13 +1,18 @@
-PUSH 15
-PUSH 20
-
-# Call the "is_less_than" subroutine (Instruction Index 8)
-CALL 8
-
-# Print the boolean result (1 = True, 0 = False)
-OUT
-HALT
+::print
+    OUT
+    HALT
+    RET
 
 # --- SUBROUTINE: is_less_than (Index 8) ---
-CMPLT   # Pushes 1 if 15 < 20
-RET     # Returns to main
+::is_less_than
+    CMPLT   # Pushes 1 if 15 < 20
+    RET     # Returns to main
+
+::_global
+    PUSH 15
+    PUSH 20
+
+    # Call the "::is_less_than" subroutine
+    CALL is_less_than
+    CALL print
+    RET
