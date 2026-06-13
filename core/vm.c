@@ -26,7 +26,6 @@ int vm_execute(VM* vm) {
         switch(opcode_type){
             case OPT_MEMSTACK:  exec_status = stack_vm_execute(vm, opcode); break;
             case OPT_IMATH:     exec_status = imath_vm_execute(vm, opcode); break;
-            case OPT_FMATH:     exec_status = fmath_vm_execute(vm, opcode); break;
             case OPT_MEM:       exec_status = mem_vm_execute(vm, opcode); break;
             case OPT_IO:        exec_status = io_vm_execute(vm, opcode); break;
             case OPT_CONTROL:   exec_status = control_flow_vm_execute(vm, opcode); break;

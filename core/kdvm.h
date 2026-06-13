@@ -46,7 +46,6 @@ typedef enum{
     OPT_MEM = 0x20,
     OPT_CONTROL = 0x30,
     OPT_IO = 0x40,
-    OPT_FMATH = 0x50,
     OPT_SYSCALL = 0x60
 
 } OPCODE_TYPE;
@@ -60,6 +59,10 @@ typedef enum {
     OP_DUP    = OPT_MEMSTACK | 0x04,
     OP_SWAP   = OPT_MEMSTACK | 0x05,
     OP_ROT    = OPT_MEMSTACK | 0x06,
+
+    OP_FPUSH  = OPT_MEMSTACK | 0x07,
+    OP_CPUSH  = OPT_MEMSTACK | 0x08,
+    OP_BPUSH  = OPT_MEMSTACK | 0x09,
 
     // Integer Arithmetic
     OP_ADD    = OPT_IMATH | 0x00,
@@ -94,13 +97,6 @@ typedef enum {
     OP_OUT    = OPT_IO | 0x00,
     OP_FOUT   = OPT_IO | 0x01,
     OP_IN     = OPT_IO | 0x02,
-
-    // Floating Point Arithmetic
-    OP_FPUSH  = OPT_FMATH | 0x00,
-    OP_FADD   = OPT_FMATH | 0x01,
-    OP_FSUB   = OPT_FMATH | 0x02,
-    OP_FMUL   = OPT_FMATH | 0x03,
-    OP_FDIV   = OPT_FMATH | 0x04,
 
     OP_SYS_READ   = OPT_SYSCALL | 0x01,
     OP_SYS_WRITE  = OPT_SYSCALL | 0x02,

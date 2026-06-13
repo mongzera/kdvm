@@ -46,20 +46,21 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 ### Base & Stack Manipulation
 
 * `HALT` - Stop execution cleanly.
-* `PUSH <val>` - Push an integer onto the stack.
 * `POP` - Remove the top value from the stack.
 * `DUP` - Duplicates the top value of the stack and pushing it.
 * `SWAP` - Swaps 2 top values in the stack
 * `ROT` - Rotates the top 3 values in the stack. It floats the last value to the top, and sinks the first 2 values.
 
+### Data Types
+
+* `PUSH <val>` - Pushes an integer onto the stack (bit-casted).
+* `FPUSH <val>` - Pushes a float onto the stack (bit-casted).
+* `BPUSH <val>` - Pushes a byte onto the stack (bit-casted).
+* `CPUSH <val>` - Pushes a char onto the stack (bit-casted).
+
 ### Integer Arithmetic
 
 * `ADD` / `SUB` / `MUL` / `DIV` - Pops top two values, performs math, pushes result.
-
-### Floating Point
-
-* `FPUSH <val>` - Pushes a float onto the stack (bit-casted).
-* `FADD` / `FSUB` / `FMUL` / `FDIV` - Floating point arithmetic.
 
 ### Memory Access
 
@@ -88,7 +89,6 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `CALL <subroutine>` - Push current `PC` to Call Stack, jump to target.
 * `RET` - Pop address from Call Stack and return `PC` there.
 * `OUT` - Pops and prints an integer to the terminal.
-* `FOUT` - Pops and prints a float to the terminal.
 * `IN` - Pauses execution, waits for user integer input, pushes to stack.
 
 The program starts with a main sub-routine and it should be named ::_global.

@@ -9,8 +9,6 @@
 
 #define EMIT(x) vm->program[vm->program_size++] = (x)
 
-
-
 struct subroutine_ctx{
     const char* name;
     int program_line;
@@ -145,12 +143,6 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "FOUT") == 0)  EMIT(OP_FOUT);
         else if (strcmp(command, "IN") == 0)    EMIT(OP_IN);
 
-        // Floats
-        else if (strcmp(command, "FADD") == 0)  EMIT(OP_FADD);
-        else if (strcmp(command, "FSUB") == 0)  EMIT(OP_FSUB);
-        else if (strcmp(command, "FMUL") == 0)  EMIT(OP_FMUL);
-        else if (strcmp(command, "FDIV") == 0)  EMIT(OP_FDIV);
-
         // Parameterized RAM Commands (Require <value> <addr> for ISTORE, Require <addr> for ILOAD)
         else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "FSTORE") == 0) {
             uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE : OP_FSTORE;
@@ -196,10 +188,69 @@ int load_kdm_file(const char* filename, VM* vm) {
 
         }
 
+        else if(strcmp(command, "PUSH") == 0 || strcmp(command, "FPUSH") == 0 || strcmp(command, "CPUSH") == 0 || strcmp(command, "BPUSH") == 0){
+            uint32_t opcode = ( (strcmp(command, "PUSH") == 0)    ? OP_PUSH :
+                                (strcmp(command, "FPUSH") == 0)   ? OP_FPUSH :
+                                (strcmp(command, "CPUSH")   == 0) ? OP_CPUSH :
+                                                                    OP_BPUSH);
+            EMIT(opcode);
+
+            switch (opcode) {
+                case OP_PUSH: {
+                    int32_t value;
+                    if (sscanf(cursor, "%i", &value) != 1) {
+                        parse_error("Line %d: Expected integer.\n", line_num);
+                        fclose(file); return -1;
+                    }
+
+                    EMIT((int32_t)value);
+                    break;
+                }
+
+                case OP_FPUSH: {
+                    float value;
+                    if (sscanf(cursor, "%f", &value) != 1) {
+                        parse_error("Line %d: Expected float.\n", line_num);
+                        fclose(file); return -1;
+                    }
+
+                    // Use a union to preserve the exact IEEE 754 bit pattern
+                    union { float f; int32_t i; } pun;
+                    pun.f = value;
+                    EMIT(pun.i);
+                    break;
+                }
+
+                case OP_CPUSH: {
+                    char value;
+
+                    if (sscanf(cursor, " '%c'", &value) != 1) {
+                        parse_error("Line %d: Expected format CPUSH 'X'\n", line_num);
+                        fclose(file); return -1;
+                    }
+
+                    EMIT((int32_t)value);
+                    break;
+                }
+
+                case OP_BPUSH: {
+                    int value;
+                    if (sscanf(cursor, "%i", &value) != 1) {
+                        parse_error("Line %d: Expected byte.\n", line_num);
+                        fclose(file); return -1;
+                    }
+
+                    EMIT((int32_t)(int8_t)value);
+                    break;
+                }
+            }
+
+
+        }
+
         // Parameterized Commands (Require an integer argument)
-        else if (strcmp(command, "PUSH") == 0 || strcmp(command, "JUMP") == 0 || strcmp(command, "JNZ") == 0 || strcmp(command, "JZ") == 0) {
-            uint32_t opcode = ( (strcmp(command, "PUSH") == 0) ? OP_PUSH :
-                                (strcmp(command, "JUMP") == 0) ? OP_JUMP :
+        else if (strcmp(command, "JUMP") == 0 || strcmp(command, "JNZ") == 0 || strcmp(command, "JZ") == 0) {
+            uint32_t opcode = ( (strcmp(command, "JUMP") == 0) ? OP_JUMP :
                                 (strcmp(command, "JZ")   == 0) ? OP_JZ :
                                                                 OP_JNZ);
 
@@ -211,23 +262,7 @@ int load_kdm_file(const char* filename, VM* vm) {
                 fclose(file); return -1;
             }
 
-            if(opcode == OP_PUSH) EMIT((uint32_t)value);
-            else EMIT((uint32_t)value + current_subroutine->program_line);
-        }
-
-        // Parameterized Command (Require a float argument)
-        else if (strcmp(command, "FPUSH") == 0) {
-            EMIT(OP_FPUSH);
-
-            float val;
-            if (sscanf(cursor, "%f", &val) != 1) {
-                parse_error("Line %d: Expected float.\n", line_num);
-                fclose(file); return -1;
-            }
-
-            PrimitiveValue primitive;
-            primitive.data.f = val;
-            EMIT(primitive.data.u);
+            EMIT((uint32_t)value + current_subroutine->program_line);
         }
 
         // Parameterized Commands (Require a string argument)

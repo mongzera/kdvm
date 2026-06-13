@@ -59,17 +59,3 @@ int imath_vm_execute(VM* vm, uint32_t opcode){
 
     return EXEC_CONTINUE;
 }
-
-int fmath_vm_execute(VM* vm, uint32_t opcode){
-    switch (opcode) {
-        // Floating Point
-        case OP_FPUSH: vm_depr("OP_FPUSH"); break;
-        case OP_FOUT: vm_depr("OP_FOUT"); break;
-        case OP_FADD: vm_depr("OP_FADD"); break;
-        case OP_FSUB: vm_depr("OP_FSUB"); break;
-        case OP_FMUL: vm_depr("OP_FMUL"); break;
-        case OP_FDIV: vm_depr("OP_FDIV"); break;
-    }
-
-    return EXEC_CONTINUE;
-}

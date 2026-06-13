@@ -6,6 +6,5 @@
 #include <stdio.h>
 
 int imath_vm_execute(VM* vm, uint32_t opcode);
-int fmath_vm_execute(VM* vm, uint32_t opcode);
 
 #endif
