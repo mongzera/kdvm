@@ -13,7 +13,7 @@
     CALL add_6
     JZ 10
     PUSH 9
-    OUT
+    PEEK
     HALT
 
     PUSH 7

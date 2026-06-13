@@ -11,6 +11,9 @@
 #define CALL_STACK_MEM 64 // New: Dedicated stack for function return addresses
 #define MAX_HANDLES 64
 
+#define VM_POP(vm) (int32_t)vm->stack[vm->sp--]
+#define VM_PUSH(vm, val) vm->stack[++vm->sp] = (uint32_t)val
+
 typedef enum {
     EXEC_ERR = -1,
     EXEC_NO_ERR = 0,
@@ -36,6 +39,7 @@ typedef enum {
     OP_PEEK   = OPT_MEMSTACK | 0x03,
     OP_DUP    = OPT_MEMSTACK | 0x04,
     OP_SWAP   = OPT_MEMSTACK | 0x05,
+    OP_ROT    = OPT_MEMSTACK | 0x06,
 
     // Integer Arithmetic
     OP_ADD    = OPT_IMATH | 0x00,

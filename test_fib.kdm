@@ -1,29 +1,66 @@
-::fib
-    # stack: n
+# ---------------------------------------------------------
+# Subroutine: fib_logic
+# ---------------------------------------------------------
+::fib_logic
+    # 1. Loop Condition (n == 0?)
+    DUP             # 0  | Stack: [n, n]
+    PUSH 0          # 1  | Stack: [n, n, 0]
+    CMPEQ           # 3  | Stack: [n, n==0]
+    JNZ 29          # 4  | Jump to POP at offset 29
 
-    DUP
-    PUSH 2
-    CMPLT
-    JNZ 7
+    # 2. Calculate sum = a + b
+    PUSH 0          # 6  | Addr 0
+    LOAD            # 8  | Stack: [n, a]
+    PUSH 1          # 9  | Addr 1
+    LOAD            # 11 | Stack: [n, a, b]
+    ADD             # 12 | Stack: [n, sum]
 
-    RET
+    # 3. Move b to a (RAM[0] = RAM[1])
+    # We do this FIRST before overwriting RAM[1]
+    PUSH 1          # 13 | Addr 1
+    LOAD            # 15 | Stack: [n, sum, b]
+    PUSH 0          # 16 | Addr 0
+    SWAP            # 18 | Stack: [n, sum, 0, b]
+    STORE           # 19 | RAM[0] = b. Stack: [n, sum]
 
-    DUP
-    PUSH 1
-    SUB
-    CALL fib
+    # 4. Store sum to b (RAM[1] = sum)
+    PUSH 1          # 20 | Addr 1
+    SWAP            # 22 | Stack: [n, 1, sum]
+    STORE           # 23 | RAM[1] = sum. Stack: [n]
 
-    SWAP
-    PUSH 2
-    SUB
-    CALL fib
+    # 5. Decrement n & Loop
+    PUSH 1          # 24 | Stack: [n, 1]
+    SUB             # 26 | Stack: [n-1]
+    JUMP 0          # 27 | Loop back to 0
+# ---------------------------------------------------------
+# Exit Scope
+# ---------------------------------------------------------
+    POP             # 29 | Clean up the 0
+    RET             # 30 | Return to caller
 
-    ADD
-    RET
-
-
+# ---------------------------------------------------------
+# Main Entry Point
+# ---------------------------------------------------------
 ::_global
-    PUSH 5
-    CALL fib
+    # 1. Target Fibonacci Number (n = 5)
+    IN
+
+    # 2. Initialize RAM[0] = 0 (a)
+    PUSH 0
+    PUSH 0
+    STORE
+
+    # 3. Initialize RAM[1] = 1 (b)
+    PUSH 1
+    PUSH 1
+    STORE
+
+    # 4. Run loop
+    CALL fib_logic
+
+    # 5. Output Result
+    # If n=5, RAM[0] contains the 5th number (5)
+    PUSH 0
+    LOAD
     OUT
     HALT

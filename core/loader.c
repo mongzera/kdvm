@@ -126,6 +126,8 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "POP") == 0)   EMIT(OP_POP);
         else if (strcmp(command, "DUP") == 0)   EMIT(OP_DUP);
         else if (strcmp(command, "SWAP") == 0)  EMIT(OP_SWAP);
+        else if (strcmp(command, "ROT") == 0)  EMIT(OP_ROT);
+
         else if (strcmp(command, "ADD") == 0)   EMIT(OP_ADD);
         else if (strcmp(command, "SUB") == 0)   EMIT(OP_SUB);
         else if (strcmp(command, "MUL") == 0)   EMIT(OP_MUL);

@@ -21,6 +21,8 @@ int vm_execute(VM* vm) {
 
         int exec_status = EXEC_NO_ERR;
 
+        //printf("[INS EXEC LINE: %d]: 0x%X\n", vm->pc, opcode);
+
         switch(opcode_type){
             case OPT_MEMSTACK: exec_status = stack_vm_execute(vm, opcode); break;
             case OPT_IMATH: exec_status = imath_vm_execute(vm, opcode); break;

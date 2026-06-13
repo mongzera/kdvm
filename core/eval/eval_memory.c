@@ -1,5 +1,6 @@
 #include "eval_memory.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int stack_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
@@ -20,6 +21,17 @@ int stack_vm_execute(VM* vm, uint32_t opcode){
             vm->stack[++vm->sp] = b;
 
             break;
+        };
+        case OP_ROT: {
+            uint32_t c = VM_POP(vm);
+            uint32_t b = VM_POP(vm);
+            uint32_t a = VM_POP(vm);
+
+            VM_PUSH(vm, b);
+            VM_PUSH(vm, c);
+            VM_PUSH(vm, a);
+
+            break;
         }
 
     }
@@ -33,11 +45,19 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         case OP_STORE: {
             uint32_t val = vm->stack[vm->sp--];
             uint32_t addr = vm->stack[vm->sp--];
-            vm->ram[addr] = val; break;
+            if (addr < 0 || addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for store.\n", addr);
+                exit(1);
+            }
+            else vm->ram[addr] = val; break;
         }
         case OP_LOAD: {
             uint32_t addr = vm->stack[vm->sp--];
-            vm->stack[++vm->sp] = vm->ram[addr]; break;
+            if (addr < 0 || addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for load.\n", addr);
+                exit(1);
+            }
+            else vm->stack[++vm->sp] = vm->ram[addr]; break;
         }
     }
 

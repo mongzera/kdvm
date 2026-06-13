@@ -50,6 +50,8 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `POP` - Remove the top value from the stack.
 * `DUP` - Duplicates the top value of the stack and pushing it.
 * `SWAP` - Swaps 2 top values in the stack
+* `ROT` - Rotates the top 3 values in the stack. It floats the last value to the top, and sinks the first 2 values.
+
 ### Integer Arithmetic
 
 * `ADD` / `SUB` / `MUL` / `DIV` - Pops top two values, performs math, pushes result.

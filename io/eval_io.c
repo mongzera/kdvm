@@ -3,12 +3,12 @@
 int io_vm_execute(VM *vm, uint32_t opcode){
     switch (opcode) {
         // I/O
-        case OP_OUT:  printf("%d\n", (int32_t)vm->stack[vm->sp--]); break;
+        case OP_OUT:  printf("%d\n", VM_POP(vm)); break;
         case OP_IN: {
             int val;
             printf("> ");
             scanf("%d", &val);
-            vm->stack[++vm->sp] = (uint32_t)val;
+            VM_PUSH(vm, val);
             break;
         }
     }
