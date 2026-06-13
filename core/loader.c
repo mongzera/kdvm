@@ -154,6 +154,43 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "FMUL") == 0)  EMIT(OP_FMUL);
         else if (strcmp(command, "FDIV") == 0)  EMIT(OP_FDIV);
 
+        // Parameterized RAM Commands (Require <value> <addr> for ISTORE, Require <addr> for ILOAD)
+        else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "ILOAD") == 0) {
+            uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE : OP_ILOAD;
+
+            if(opcode == OP_ISTORE){
+                int bytes_read = 0;
+                int value;
+                if (sscanf(cursor, "%i%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected integer.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                cursor += bytes_read;
+
+                uint32_t addr;
+                if (sscanf(cursor, "%i", &addr) != 1) {
+                    parse_error("Line %d: Expected integer.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                printf("STORE: [addr: %d = %d]\n", addr, value);
+                EMIT(opcode); EMIT(value); EMIT(addr);
+
+            } else{
+
+                uint32_t addr;
+                if (sscanf(cursor, "%i", &addr) != 1) {
+                    parse_error("Line %d: Expected integer.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                EMIT(opcode); EMIT(addr);
+            }
+
+
+        }
+
         // Parameterized Commands (Require an integer argument)
         else if (strcmp(command, "PUSH") == 0 || strcmp(command, "JUMP") == 0 || strcmp(command, "JNZ") == 0 || strcmp(command, "JZ") == 0) {
             uint32_t opcode = ( (strcmp(command, "PUSH") == 0) ? OP_PUSH :

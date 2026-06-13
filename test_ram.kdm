@@ -11,4 +11,9 @@
 
     # 3. Print the result
     OUT             # If this prints 99, your memory system works!
+
+
+    ISTORE 67 6
+    ILOAD 6
+    OUT             # If this prints 67, it works!
     HALT

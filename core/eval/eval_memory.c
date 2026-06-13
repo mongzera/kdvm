@@ -43,21 +43,42 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
         // Memory
         case OP_STORE: {
-            uint32_t val = vm->stack[vm->sp--];
-            uint32_t addr = vm->stack[vm->sp--];
+            int val = VM_POP(vm);
+            uint32_t addr = VM_POP(vm);
             if (addr < 0 || addr >= RAM_MEM) {
                 printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
             }
             else vm->ram[addr] = val; break;
         }
+
         case OP_LOAD: {
-            uint32_t addr = vm->stack[vm->sp--];
+            uint32_t addr = VM_POP(vm);
             if (addr < 0 || addr >= RAM_MEM) {
                 printf("Segfault: Invalid RAM address %d for load.\n", addr);
                 exit(1);
             }
             else vm->stack[++vm->sp] = vm->ram[addr]; break;
+        }
+
+        // for Integer Store
+        case OP_ISTORE: {
+            int val  = vm->program[vm->pc++];
+            uint32_t addr = vm->program[vm->pc++];
+            if (addr < 0 || addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for store.\n", addr);
+                exit(1);
+            }
+            else vm->ram[addr] = val; break;
+        }
+
+        case OP_ILOAD: {
+            uint32_t addr = vm->program[vm->pc++];
+            if (addr < 0 || addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for load.\n", addr);
+                exit(1);
+            }
+            else VM_PUSH(vm, vm->ram[addr]); break;
         }
     }
 
