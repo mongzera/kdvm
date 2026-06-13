@@ -89,7 +89,7 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `CALL <subroutine>` - Push current `PC` to Call Stack, jump to target.
 * `RET` - Pop address from Call Stack and return `PC` there.
 * `OUT` - Pops and prints an integer to the terminal.
-* `IN` - Pauses execution, waits for user integer input, pushes to stack.
+* `IN <type>` - Pauses execution, waits for user input, pushes to stack. TYPES [ INT = 0, FLOAT = 1, CHAR = 2, BYTE = 3]
 
 The program starts with a main sub-routine and it should be named ::_global.
 This is a reserved subroutine name so that the VM knows where to start executing the program.

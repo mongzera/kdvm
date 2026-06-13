@@ -141,7 +141,16 @@ int load_kdm_file(const char* filename, VM* vm) {
         // I/O
         else if (strcmp(command, "OUT") == 0)   EMIT(OP_OUT);
         else if (strcmp(command, "FOUT") == 0)  EMIT(OP_FOUT);
-        else if (strcmp(command, "IN") == 0)    EMIT(OP_IN);
+        else if (strcmp(command, "IN") == 0) {
+            int value;
+            if (sscanf(cursor, "%i", &value) != 1) {
+                parse_error("Line %d: Expected integer.\n", line_num);
+                fclose(file); return -1;
+            }
+
+            EMIT(OP_IN);
+            EMIT(value);
+        }
 
         // Parameterized RAM Commands (Require <value> <addr> for ISTORE, Require <addr> for ILOAD)
         else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "FSTORE") == 0) {

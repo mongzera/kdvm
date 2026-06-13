@@ -17,10 +17,10 @@
 
 // Helper union for bit-casting
 typedef enum {
-    TYPE_INT = 0x10,
-    TYPE_FLOAT = 0x11,
-    TYPE_CHAR = 0x12,
-    TYPE_BYTE = 0x13
+    TYPE_INT = 0x0,
+    TYPE_FLOAT = 0x1,
+    TYPE_CHAR = 0x2,
+    TYPE_BYTE = 0x3
 } PrimitiveType;
 
 typedef struct {
