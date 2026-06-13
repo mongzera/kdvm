@@ -66,8 +66,9 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `STORE` - Pops value, pops address -> Saves value to `RAM[address]`.
 * `LOAD` - Pops address -> Pushes `RAM[address]` to the stack.
 
-* `I_STORE <val> <addr>` - Pops value, pops address -> Saves value to `RAM[address]`.
-* `I_LOAD <addr>` - Pops address -> Pushes `RAM[address]` to the stack.
+* `I_STORE <integer-value> <addr>` - Stores integer value directly to `RAM[addr]`.
+* `F_STORE <float-value> <addr>` - Stores float value directly to `RAM[addr]`.
+
 
 ### Control Flow
 

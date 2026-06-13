@@ -1,0 +1,25 @@
+::recursion
+    DUP             # Keep a copy of n
+    PUSH 0          # Target for comparison
+    CMPEQ           # Result: 1 if n == 0, else 0
+
+    # If CMPEQ is 0 (false), jump to recursive work
+    # If CMPEQ is 1 (true), continue to base case
+    JZ 8           # Jump to Recursive Step if n != 0
+
+    # Base Case (n == 0)
+    POP             # Clean up the stack
+    RET             # Go back to caller
+
+# --- Recursive Step (index 8) ---
+    DUP
+    OUT             # Print the current value
+    PUSH 1          # Value to subtract
+    SUB             # n - 1
+    CALL recursion         # Recursively call this block
+    RET             # Unwind
+
+::_global
+    PUSH 5          # Initial n = 5
+    CALL recursion         # Jump to the recursion logic
+    HALT
