@@ -80,7 +80,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 printf("Segfault: Invalid RAM address %d for load.\n", addr.data.u);
                 exit(1);
             }
-            else vm->stack[++vm->sp] = vm->ram[addr.data.u]; break;
+            else VM_PUSH(vm, vm->ram[addr.data.u]); break;
         }
 
         // for Integer Store
@@ -102,16 +102,51 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
 
         // for Floating Point Store
         case OP_FSTORE: {
-            float val  = vm->program[vm->pc++];
-            uint32_t addr = vm->program[vm->pc++];
-            if (addr < 0 || addr >= RAM_MEM) {
-                printf("Segfault: Invalid RAM address %d for store.\n", addr);
+            // 1. Read the raw integer bits from the program stream
+            int32_t raw_bits = vm->program[vm->pc++];
+            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+
+            if (addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %u for FSTORE.\n", addr);
                 exit(1);
-            }
-            else {
+            } else {
                 PrimitiveValue value;
                 value.type = TYPE_FLOAT;
-                value.data.f = val;
+                value.data.u = raw_bits; // Now correctly holds 3.14
+                vm->ram[addr] = value;
+            }
+            break;
+        }
+
+        case OP_CSTORE: {
+            // Cast to uint16_t to match your type definition
+            // Note: We pull from program stream as int32_t but cast down
+            uint16_t val = (uint16_t)vm->program[vm->pc++];
+            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+
+            if (addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %u for CSTORE.\n", addr);
+                exit(1);
+            } else {
+                PrimitiveValue value;
+                value.type = TYPE_CHAR; // Using your uint16_t type ID
+                value.data.c = (char)val; // Storing as char
+                vm->ram[addr] = value;
+            }
+            break;
+        }
+
+        case OP_BSTORE: {
+            int8_t val = (int8_t)vm->program[vm->pc++];
+            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+
+            if (addr >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %u for BSTORE.\n", addr);
+                exit(1);
+            } else {
+                PrimitiveValue value;
+                value.type = TYPE_BYTE; // Using your uint16_t type ID
+                value.data.b = val;
                 vm->ram[addr] = value;
             }
             break;

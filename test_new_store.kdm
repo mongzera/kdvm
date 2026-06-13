@@ -1,0 +1,27 @@
+::_global
+    FSTORE 3.14 9
+    PUSH 9
+    LOAD
+    OUT
+
+    # Test CSTORE: store 'A' at address 10
+    CSTORE 'A' 10
+    PUSH 10
+    LOAD
+    OUT
+
+    # Test BSTORE: store byte 42 at address 11
+    BSTORE 42 11
+    PUSH 11
+    LOAD
+    OUT
+
+    # Verify values by loading them back
+    # (Assuming you have an ILOAD opcode, if not,
+    # you can just print the RAM content if you have a debug print)
+
+    # For now, we print them using the stored address
+    # You would need an OADR (Output Address) or similar to verify
+
+    HALT
+RET

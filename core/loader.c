@@ -153,48 +153,62 @@ int load_kdm_file(const char* filename, VM* vm) {
         }
 
         // Parameterized RAM Commands (Require <value> <addr> for ISTORE, Require <addr> for ILOAD)
-        else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "FSTORE") == 0) {
-            uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE : OP_FSTORE;
+        // Add CSTORE and BSTORE to the existing RAM Commands logic
+        else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "FSTORE") == 0 ||
+                 strcmp(command, "CSTORE") == 0 || strcmp(command, "BSTORE") == 0) {
 
-            if(opcode == OP_ISTORE){
-                int bytes_read = 0;
+            uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE :
+                              (strcmp(command, "FSTORE") == 0) ? OP_FSTORE :
+                              (strcmp(command, "CSTORE") == 0) ? OP_CSTORE : OP_BSTORE;
+
+            int bytes_read = 0;
+            uint32_t addr;
+
+            // Handle the specific value parsing per type
+            if (opcode == OP_ISTORE || opcode == OP_BSTORE) {
                 int value;
                 if (sscanf(cursor, "%i%n", &value, &bytes_read) != 1) {
-                    parse_error("Line %d: Expected integer.\n", line_num);
+                    parse_error("Line %d: Expected integer/byte value.\n", line_num);
                     fclose(file); return -1;
                 }
-
                 cursor += bytes_read;
-
-                uint32_t addr;
                 if (sscanf(cursor, "%i", &addr) != 1) {
                     parse_error("Line %d: Expected address.\n", line_num);
                     fclose(file); return -1;
                 }
-
-                printf("STORE: [addr: %d = %d]\n", addr, value);
-                EMIT(opcode); EMIT(value); EMIT(addr);
-
-            } else{
-
-                int bytes_read = 0;
+                // Emit as int32_t to maintain stream consistency
+                EMIT(opcode); EMIT((int32_t)value); EMIT(addr);
+            }
+            else if (opcode == OP_FSTORE) {
                 float value;
                 if (sscanf(cursor, "%f%n", &value, &bytes_read) != 1) {
-                    parse_error("Line %d: Expected float.\n", line_num);
+                    parse_error("Line %d: Expected float value.\n", line_num);
                     fclose(file); return -1;
                 }
-
                 cursor += bytes_read;
-
-                uint32_t addr;
                 if (sscanf(cursor, "%i", &addr) != 1) {
                     parse_error("Line %d: Expected address.\n", line_num);
                     fclose(file); return -1;
                 }
-
-                EMIT(opcode); EMIT(value); EMIT(addr);
+                // Use a union to bit-cast the float for storage
+                union { float f; int32_t i; } pun;
+                pun.f = value;
+                EMIT(opcode); EMIT(pun.i); EMIT(addr);
             }
-
+            else if (opcode == OP_CSTORE) {
+                char value;
+                // Parse character inside single quotes: 'X'
+                if (sscanf(cursor, " '%c'%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected char in format 'X'.\n", line_num);
+                    fclose(file); return -1;
+                }
+                cursor += bytes_read;
+                if (sscanf(cursor, "%i", &addr) != 1) {
+                    parse_error("Line %d: Expected address.\n", line_num);
+                    fclose(file); return -1;
+                }
+                EMIT(opcode); EMIT((int32_t)value); EMIT(addr);
+            }
         }
 
         else if(strcmp(command, "PUSH") == 0 || strcmp(command, "FPUSH") == 0 || strcmp(command, "CPUSH") == 0 || strcmp(command, "BPUSH") == 0){
