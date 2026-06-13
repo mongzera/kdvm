@@ -72,14 +72,17 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
             else vm->ram[addr] = val; break;
         }
 
-        case OP_ILOAD: {
+        // for Floating Point Store
+        case OP_FSTORE: {
+            float val  = vm->program[vm->pc++];
             uint32_t addr = vm->program[vm->pc++];
             if (addr < 0 || addr >= RAM_MEM) {
-                printf("Segfault: Invalid RAM address %d for load.\n", addr);
+                printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
             }
-            else VM_PUSH(vm, vm->ram[addr]); break;
+            else vm->ram[addr] = val; break;
         }
+
     }
 
     return EXEC_CONTINUE;

@@ -155,8 +155,8 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "FDIV") == 0)  EMIT(OP_FDIV);
 
         // Parameterized RAM Commands (Require <value> <addr> for ISTORE, Require <addr> for ILOAD)
-        else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "ILOAD") == 0) {
-            uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE : OP_ILOAD;
+        else if (strcmp(command, "ISTORE") == 0 || strcmp(command, "FSTORE") == 0) {
+            uint32_t opcode = (strcmp(command, "ISTORE") == 0) ? OP_ISTORE : OP_FSTORE;
 
             if(opcode == OP_ISTORE){
                 int bytes_read = 0;
@@ -170,7 +170,7 @@ int load_kdm_file(const char* filename, VM* vm) {
 
                 uint32_t addr;
                 if (sscanf(cursor, "%i", &addr) != 1) {
-                    parse_error("Line %d: Expected integer.\n", line_num);
+                    parse_error("Line %d: Expected address.\n", line_num);
                     fclose(file); return -1;
                 }
 
@@ -179,15 +179,23 @@ int load_kdm_file(const char* filename, VM* vm) {
 
             } else{
 
-                uint32_t addr;
-                if (sscanf(cursor, "%i", &addr) != 1) {
-                    parse_error("Line %d: Expected integer.\n", line_num);
+                int bytes_read = 0;
+                float value;
+                if (sscanf(cursor, "%f%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected float.\n", line_num);
                     fclose(file); return -1;
                 }
 
-                EMIT(opcode); EMIT(addr);
-            }
+                cursor += bytes_read;
 
+                uint32_t addr;
+                if (sscanf(cursor, "%i", &addr) != 1) {
+                    parse_error("Line %d: Expected address.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                EMIT(opcode); EMIT(value); EMIT(addr);
+            }
 
         }
 

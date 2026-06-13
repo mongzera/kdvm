@@ -55,7 +55,7 @@ typedef enum {
     OP_LOAD   = OPT_MEM | 0x01,
     OP_MSET   = OPT_MEM | 0x02, // Memory set
     OP_ISTORE = OPT_MEM | 0x03,
-    OP_ILOAD  = OPT_MEM | 0x04,
+    OP_FSTORE = OPT_MEM | 0x04,
 
     // Control Flow & Subroutines
     OP_JUMP   = OPT_CONTROL | 0x00,
