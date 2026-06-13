@@ -1,31 +1,66 @@
 #include "eval_control_flow.h"
-
+#include "../../util/types/types.h"
 
 int control_flow_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
         // Comparisons & Jumps
         case OP_CMPEQ: {
-            uint32_t b = vm->stack[vm->sp--];
-            uint32_t a = vm->stack[vm->sp--];
-            vm->stack[++vm->sp] = (a == b) ? 1 : 0;
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
+
+            PrimitiveValue result;
+            result.type = TYPE_INT;
+            result.data.u = primitive_equal(a, b);
+
             break;
         }
+
+        case OP_CMPNEQ: {
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
+            vm->stack[++vm->sp] = (a != b) ? 1 : 0;
+            break;
+        }
+
         case OP_CMPLT: {
-            int32_t b = (int32_t)vm->stack[vm->sp--];
-            int32_t a = (int32_t)vm->stack[vm->sp--];
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
             vm->stack[++vm->sp] = (a < b) ? 1 : 0;
             break;
         }
+
+
+        case OP_CMPLE: {
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
+            vm->stack[++vm->sp] = (a <= b) ? 1 : 0;
+            break;
+        }
+
+        case OP_CMPGT: {
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
+            vm->stack[++vm->sp] = (a > b) ? 1 : 0;
+            break;
+        }
+        case OP_CMPGE: {
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
+            vm->stack[++vm->sp] = (a >= b) ? 1 : 0;
+            break;
+        }
+
         case OP_JUMP: vm->pc = vm->program[vm->pc]; break;
+
         case OP_JNZ: {
             uint32_t target = vm->program[vm->pc++];
-            if (vm->stack[vm->sp--] != 0) vm->pc = target;
+            if ((VM_POP(vm)).u != 0) vm->pc = target;
             break;
         }
 
         case OP_JZ: {
             uint32_t target = vm->program[vm->pc++];
-            if (vm->stack[vm->sp--] == 0) vm->pc = target;
+            if ((VM_POP(vm)).u == 0) vm->pc = target;
             break;
         }
 

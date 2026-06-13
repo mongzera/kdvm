@@ -228,7 +228,7 @@ int load_kdm_file(const char* filename, VM* vm) {
                 fclose(file); return -1;
             }
 
-            FloatCast cast; cast.f = val;
+            PrimitiveValue cast; cast.f = val;
             EMIT(cast.u);
         }
 

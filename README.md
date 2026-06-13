@@ -76,7 +76,11 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `JNZ <addr>` - Pops condition. If != 0, jump `PC` to target address relative to sub-routine.
 * `JZ <addr>` - Pops condition. If == 0, jump `PC` to target address relative to sub-routine.
 * `CMPEQ` - Pops two values. Pushes `1` if equal, `0` otherwise.
+* `CMPNEQ` - Pops two values. Pushes `1` if not equal, `0` otherwise.
 * `CMPLT` - Pops two values. Pushes `1` if A < B, `0` otherwise.
+* `CMPLE` - Pops two values. Pushes `1` if A <= B, `0` otherwise.
+* `CMPGT` - Pops two values. Pushes `1` if A > B, `0` otherwise.
+* `CMPGE` - Pops two values. Pushes `1` if A >= B, `0` otherwise.
 
 ### Subroutines & I/O
 

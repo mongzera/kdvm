@@ -11,13 +11,30 @@
 #define CALL_STACK_MEM 64 // New: Dedicated stack for function return addresses
 #define MAX_HANDLES 64
 
-#define VM_POP(vm) (int32_t)vm->stack[vm->sp--]
-#define VM_PUSH(vm, val) vm->stack[++vm->sp] = (uint32_t)val
+#define VM_POP(vm) vm->stack[vm->sp--]
+#define VM_PUSH(vm, val) vm->stack[++vm->sp] = val
+
+// Helper union for bit-casting
+typedef enum {
+    TYPE_INT = 0x00,
+    TYPE_FLOAT = 0x01,
+    TYPE_CHAR = 0x02
+} PrimitiveType;
+
+typedef struct {
+    PrimitiveType type;
+    union {
+        float f;
+        uint32_t u;
+        uint8_t c;
+    } data;
+} PrimitiveValue;
+
 
 typedef enum {
     EXEC_ERR = -1,
     EXEC_NO_ERR = 0,
-    EXEC_CONTINUE = 1,
+    EXEC_CONTINUE = 1
 } ExecStatus;
 
 typedef enum{
@@ -62,7 +79,11 @@ typedef enum {
     OP_JNZ    = OPT_CONTROL | 0x01,
     OP_JZ     = OPT_CONTROL | 0x02,
     OP_CMPEQ  = OPT_CONTROL | 0x03,
-    OP_CMPLT  = OPT_CONTROL | 0x04,
+    OP_CMPNEQ  = OPT_CONTROL | 0x04,
+    OP_CMPLT  = OPT_CONTROL | 0x05,
+    OP_CMPLE  = OPT_CONTROL | 0x06,
+    OP_CMPGT  = OPT_CONTROL | 0x07,
+    OP_CMPGE  = OPT_CONTROL | 0x08,
     OP_CALL   = OPT_CONTROL | 0x0A,
     OP_RET    = OPT_CONTROL | 0x0B,
 
@@ -86,8 +107,8 @@ typedef enum {
 // The encapsulated VM State
 typedef struct {
     uint32_t program[PROGRAM_MEM];
-    uint32_t stack[STACK_MEM];
-    uint32_t ram[RAM_MEM];
+    PrimitiveValue stack[STACK_MEM];
+    PrimitiveValue ram[RAM_MEM];
     uint32_t call_stack[CALL_STACK_MEM];
 
     VM_Handle handle[MAX_HANDLES];
@@ -100,12 +121,6 @@ typedef struct {
 
     int program_size;
 } VM;
-
-// Helper union for bit-casting
-typedef union {
-    float f;
-    uint32_t u;
-} FloatCast;
 
 // Global Function Prototypes
 void vm_init(VM* vm);
