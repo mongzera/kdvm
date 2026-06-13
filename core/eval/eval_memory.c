@@ -1,31 +1,41 @@
 #include "eval_memory.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../util/types/types.h"
 
 int stack_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
         case OP_HALT: return EXEC_NO_ERR;
-        case OP_PUSH: vm->stack[++vm->sp] = vm->program[vm->pc++]; break;
-        case OP_POP:  vm->sp--; break;
-        case OP_PEEK: printf("%d\n", vm->stack[vm->sp]); break;
+        case OP_PUSH: {
+            PrimitiveValue value;
+            value.type = TYPE_INT;
+            value.data.u = vm->program[vm->pc++];
+            VM_PUSH(vm, value);
+            break;
+        }
+        case OP_POP:  VM_POP(vm); break;
+        case OP_PEEK: {
+            primitive_print(VM_PEEK(vm));
+            break;
+        }
         case OP_DUP: {
-            uint32_t value = vm->stack[vm->sp];
-            vm->stack[++vm->sp] = value;
+            PrimitiveValue value = VM_PEEK(vm);
+            VM_PUSH(vm, value);
             break;
         };
         case OP_SWAP: {
-            uint32_t a = vm->stack[vm->sp--];
-            uint32_t b = vm->stack[vm->sp--];
+            PrimitiveValue a = VM_POP(vm);
+            PrimitiveValue b = VM_POP(vm);
 
-            vm->stack[++vm->sp] = a;
-            vm->stack[++vm->sp] = b;
+            VM_PUSH(vm, a);
+            VM_PUSH(vm, b);
 
             break;
         };
         case OP_ROT: {
-            uint32_t c = VM_POP(vm);
-            uint32_t b = VM_POP(vm);
-            uint32_t a = VM_POP(vm);
+            PrimitiveValue c = VM_POP(vm);
+            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_POP(vm);
 
             VM_PUSH(vm, b);
             VM_PUSH(vm, c);
@@ -43,22 +53,34 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
         // Memory
         case OP_STORE: {
-            int val = VM_POP(vm);
-            uint32_t addr = VM_POP(vm);
-            if (addr < 0 || addr >= RAM_MEM) {
-                printf("Segfault: Invalid RAM address %d for store.\n", addr);
+            PrimitiveValue val = VM_POP(vm);
+            PrimitiveValue addr = VM_POP(vm);
+
+            if(addr.type != TYPE_INT){
+                vm_error("Address should have a type INTEGER!");
                 exit(1);
             }
-            else vm->ram[addr] = val; break;
+
+            if (addr.data.u < 0 || addr.data.u >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for store.\n", addr.data.u);
+                exit(1);
+            }
+            else vm->ram[addr.data.u] = val; break;
         }
 
         case OP_LOAD: {
-            uint32_t addr = VM_POP(vm);
-            if (addr < 0 || addr >= RAM_MEM) {
-                printf("Segfault: Invalid RAM address %d for load.\n", addr);
+            PrimitiveValue addr = VM_POP(vm);
+
+            if(addr.type != TYPE_INT){
+                vm_error("Address should have a type INTEGER!");
                 exit(1);
             }
-            else vm->stack[++vm->sp] = vm->ram[addr]; break;
+
+            if (addr.data.u < 0 || addr.data.u >= RAM_MEM) {
+                printf("Segfault: Invalid RAM address %d for load.\n", addr.data.u);
+                exit(1);
+            }
+            else vm->stack[++vm->sp] = vm->ram[addr.data.u]; break;
         }
 
         // for Integer Store
@@ -69,7 +91,13 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
             }
-            else vm->ram[addr] = val; break;
+            else {
+                PrimitiveValue value;
+                value.type = TYPE_INT;
+                value.data.u = val;
+                vm->ram[addr] = value;
+            }
+            break;
         }
 
         // for Floating Point Store
@@ -80,7 +108,13 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
             }
-            else vm->ram[addr] = val; break;
+            else {
+                PrimitiveValue value;
+                value.type = TYPE_FLOAT;
+                value.data.f = val;
+                vm->ram[addr] = value;
+            }
+            break;
         }
 
     }

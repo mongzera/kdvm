@@ -13,20 +13,23 @@
 
 #define VM_POP(vm) vm->stack[vm->sp--]
 #define VM_PUSH(vm, val) vm->stack[++vm->sp] = val
+#define VM_PEEK(vm) vm->stack[vm->sp]
 
 // Helper union for bit-casting
 typedef enum {
-    TYPE_INT = 0x00,
-    TYPE_FLOAT = 0x01,
-    TYPE_CHAR = 0x02
+    TYPE_INT = 0x10,
+    TYPE_FLOAT = 0x11,
+    TYPE_CHAR = 0x12,
+    TYPE_BYTE = 0x13
 } PrimitiveType;
 
 typedef struct {
     PrimitiveType type;
     union {
         float f;
-        uint32_t u;
-        uint8_t c;
+        int32_t u;
+        uint16_t c;
+        int8_t b;
     } data;
 } PrimitiveValue;
 
@@ -127,5 +130,6 @@ void vm_init(VM* vm);
 int vm_execute(VM* vm);
 int load_kdm_file(const char* filename, VM* vm);
 void vm_error(const char* message);
+void vm_depr(const char* message);
 
 #endif // KDVM_H

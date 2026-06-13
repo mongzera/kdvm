@@ -16,10 +16,6 @@ struct subroutine_ctx{
     int program_line;
 };
 
-void vm_error(const char* message) {
-    printf("[VM ERROR] %s\n", message);
-}
-
 void parse_error(const char* message, ...) {
     printf("[PARSE ERROR] ");
 
@@ -127,6 +123,7 @@ int load_kdm_file(const char* filename, VM* vm) {
         else if (strcmp(command, "DUP") == 0)   EMIT(OP_DUP);
         else if (strcmp(command, "SWAP") == 0)  EMIT(OP_SWAP);
         else if (strcmp(command, "ROT") == 0)  EMIT(OP_ROT);
+        else if (strcmp(command, "PEEK") == 0)  EMIT(OP_PEEK);
 
         else if (strcmp(command, "ADD") == 0)   EMIT(OP_ADD);
         else if (strcmp(command, "SUB") == 0)   EMIT(OP_SUB);
@@ -228,8 +225,9 @@ int load_kdm_file(const char* filename, VM* vm) {
                 fclose(file); return -1;
             }
 
-            PrimitiveValue cast; cast.f = val;
-            EMIT(cast.u);
+            PrimitiveValue primitive;
+            primitive.data.f = val;
+            EMIT(primitive.data.u);
         }
 
         // Parameterized Commands (Require a string argument)
@@ -274,6 +272,12 @@ int load_kdm_file(const char* filename, VM* vm) {
     }
 
     vm->_global_start = subroutine_global->program_line;
+
+
     printf("Successfully assembled %s (%d instructions loaded).\n", filename, vm->program_size);
+
+    // for(int i = 0; i < vm->program_size; i++){
+    //     printf("%d|0x%X\n", i, vm->program[i]);
+    // }
     return 0;
 }

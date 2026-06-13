@@ -4,6 +4,7 @@ int exec_vm_syscall(VM* vm, int opcode){
     switch (opcode) {
         case OP_SYS_READ: {
             // todo implement
+            break;
         }
     }
 

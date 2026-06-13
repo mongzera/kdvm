@@ -1,18 +1,4 @@
-::print
-    OUT
-    HALT
-    RET
-
-# --- SUBROUTINE: is_less_than (Index 8) ---
-::is_less_than
-    CMPLT   # Pushes 1 if 15 < 20
-    RET     # Returns to main
-
 ::_global
-    PUSH 15
-    PUSH 20
-
-    # Call the "::is_less_than" subroutine
-    CALL is_less_than
-    CALL print
-    RET
+    PUSH 16
+    PUSH 17
+    HALT

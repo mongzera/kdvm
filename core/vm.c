@@ -20,8 +20,8 @@ int vm_execute(VM* vm) {
         uint32_t opcode_type = opcode & 0xF0;
 
         int exec_status = EXEC_NO_ERR;
+        //printf("[SP]: %d\n", vm->sp);
 
-        //printf("[INS EXEC LINE: %d]: 0x%X\n", vm->pc, opcode);
 
         switch(opcode_type){
             case OPT_MEMSTACK:  exec_status = stack_vm_execute(vm, opcode); break;

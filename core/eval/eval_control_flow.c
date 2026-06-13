@@ -3,50 +3,51 @@
 
 int control_flow_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
-        // Comparisons & Jumps
         case OP_CMPEQ: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-
-            PrimitiveValue result;
-            result.type = TYPE_INT;
-            result.data.u = primitive_equal(a, b);
-
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_equal(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
 
         case OP_CMPNEQ: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-            vm->stack[++vm->sp] = (a != b) ? 1 : 0;
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_not_equal(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
 
         case OP_CMPLT: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-            vm->stack[++vm->sp] = (a < b) ? 1 : 0;
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_less_than(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
-
 
         case OP_CMPLE: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-            vm->stack[++vm->sp] = (a <= b) ? 1 : 0;
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_less_than_equal(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
 
         case OP_CMPGT: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-            vm->stack[++vm->sp] = (a > b) ? 1 : 0;
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_greater_than(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
+
         case OP_CMPGE: {
             PrimitiveValue b = VM_POP(vm);
             PrimitiveValue a = VM_POP(vm);
-            vm->stack[++vm->sp] = (a >= b) ? 1 : 0;
+            PrimitiveValue res = {TYPE_INT, .data.u = primitive_greater_than_equal(a, b)};
+            VM_PUSH(vm, res);
             break;
         }
 
@@ -54,13 +55,13 @@ int control_flow_vm_execute(VM* vm, uint32_t opcode){
 
         case OP_JNZ: {
             uint32_t target = vm->program[vm->pc++];
-            if ((VM_POP(vm)).u != 0) vm->pc = target;
+            if ((VM_POP(vm)).data.u != 0) vm->pc = target;
             break;
         }
 
         case OP_JZ: {
             uint32_t target = vm->program[vm->pc++];
-            if ((VM_POP(vm)).u == 0) vm->pc = target;
+            if ((VM_POP(vm)).data.u == 0) vm->pc = target;
             break;
         }
 
