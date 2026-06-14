@@ -126,12 +126,12 @@ typedef struct {
     VM_Handle handle[MAX_HANDLES];
 
     uint32_t pc;    // Program Counter
-    int32_t  sp;    // Stack Pointer
-    int32_t  csp;   // Call Stack Pointer
+    uint32_t  sp;    // Stack Pointer
+    uint32_t  csp;   // Call Stack Pointer
 
     uint32_t _global_start;
 
-    int program_size;
+    uint32_t program_size;
 } VM;
 
 // Global Function Prototypes
