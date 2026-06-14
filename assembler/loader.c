@@ -180,6 +180,7 @@ int load_kdm_file(const char *filename, VM *vm) {
         else if (strcmp(command, "SUB")   == 0) EMIT(OP_SUB);
         else if (strcmp(command, "MUL")   == 0) EMIT(OP_MUL);
         else if (strcmp(command, "DIV")   == 0) EMIT(OP_DIV);
+        else if (strcmp(command, "MOD")   == 0) EMIT(OP_MOD);
         else if (strcmp(command, "STORE") == 0) EMIT(OP_STORE);
         else if (strcmp(command, "LOAD")  == 0) EMIT(OP_LOAD);
         else if (strcmp(command, "CMPEQ") == 0) EMIT(OP_CMPEQ);

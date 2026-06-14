@@ -14,6 +14,27 @@ int stack_vm_execute(VM* vm, uint32_t opcode){
             VM_PUSH(vm, value);
             break;
         }
+        case OP_FPUSH: {
+            PrimitiveValue value;
+            value.type = TYPE_FLOAT;
+            value.data.u = vm->program[vm->pc++];
+            VM_PUSH(vm, value);
+            break;
+        }
+        case OP_CPUSH: {
+            PrimitiveValue value;
+            value.type = TYPE_CHAR;
+            value.data.u = vm->program[vm->pc++];
+            VM_PUSH(vm, value);
+            break;
+        }
+        case OP_BPUSH: {
+            PrimitiveValue value;
+            value.type = TYPE_BYTE;
+            value.data.u = vm->program[vm->pc++];
+            VM_PUSH(vm, value);
+            break;
+        }
         case OP_POP:  VM_POP(vm); break;
         case OP_PEEK: {
             primitive_print(VM_PEEK(vm));

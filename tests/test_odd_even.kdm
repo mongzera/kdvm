@@ -1,0 +1,23 @@
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
+::_global
+    IN 0
+    PUSH 0
+    STORE
+    PUSH 0
+    LOAD
+    PUSH 2
+    MOD
+    OUT
+    HALT
+    PUSH 0
+    CMPEQ
+    JZ 21
+    CPUSH 'E'
+    OUT
+    JUMP 24
+    CPUSH 'O'
+    OUT
+    HALT
