@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "../../util/types/types.h"
 
+
 int stack_vm_execute(VM* vm, uint32_t opcode){
     switch (opcode) {
         case OP_HALT: return EXEC_NO_ERR;
@@ -61,11 +62,8 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 exit(1);
             }
 
-            if (addr.data.u < 0 || addr.data.u >= VM_RAM_SIZE) {
-                printf("Segfault: Invalid RAM address %d for store.\n", addr.data.u);
-                exit(1);
-            }
-            else vm->ram[addr.data.u] = val; break;
+            store_stack(vm, addr.data.u, 0, val);
+            break;
         }
 
         case OP_LOAD: {
@@ -76,11 +74,8 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 exit(1);
             }
 
-            if (addr.data.u < 0 || addr.data.u >= VM_RAM_SIZE) {
-                printf("Segfault: Invalid RAM address %d for load.\n", addr.data.u);
-                exit(1);
-            }
-            else VM_PUSH(vm, vm->ram[addr.data.u]); break;
+            VM_PUSH(vm, load_stack(vm, addr.data.u, 0));
+            break;
         }
 
         // for Integer Store
@@ -95,7 +90,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 PrimitiveValue value;
                 value.type = TYPE_INT;
                 value.data.u = val;
-                vm->ram[addr] = value;
+                store_stack(vm, addr, 0, value);
             }
             break;
         }
@@ -113,7 +108,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 PrimitiveValue value;
                 value.type = TYPE_FLOAT;
                 value.data.u = raw_bits; // Now correctly holds 3.14
-                vm->ram[addr] = value;
+                store_stack(vm, addr, 0, value);
             }
             break;
         }
@@ -131,7 +126,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 PrimitiveValue value;
                 value.type = TYPE_CHAR; // Using your uint16_t type ID
                 value.data.c = (char)val; // Storing as char
-                vm->ram[addr] = value;
+                store_stack(vm, addr, 0, value);
             }
             break;
         }
@@ -147,7 +142,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 PrimitiveValue value;
                 value.type = TYPE_BYTE; // Using your uint16_t type ID
                 value.data.b = val;
-                vm->ram[addr] = value;
+                store_stack(vm, addr, 0, value);
             }
             break;
         }

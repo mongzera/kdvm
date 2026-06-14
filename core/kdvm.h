@@ -17,8 +17,6 @@
 #define HEAP_RAM_SIZE       STACK_RAM_START - HEAP_RAM_START
 #define STACK_RAM_SIZE      VM_RAM_SIZE - STACK_RAM_START
 
-#define mem_is_out_of_bounds(addr, start, size) ((addr) < (start) || (addr) >= ((start) + (size)))
-
 #define CALL_STACK_MEM 64
 #define MAX_HANDLES 64
 
