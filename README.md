@@ -11,6 +11,7 @@ Designed for simplicity and speed, KDVM acts as a perfect educational foundation
 * **Type-Punned Floating Point:** Seamlessly supports both 32-bit signed integers and IEEE-754 floating-point math using the exact same memory arrays via C union bit-casting.
 * **Subroutines:** Features a dedicated Call Stack, allowing for modular functions and `CALL`/`RET` flows.
 * **No Global State:** The entire VM is encapsulated inside a `VM` struct, allowing multiple independent machines to run simultaneously within the same host program.
+* **Variables:** The vm supports variables within the subroutines.
 * **Native I/O:** Built-in opcodes for reading from and writing to the standard terminal.
 
 ## 🏗️ Architecture
@@ -18,8 +19,9 @@ Designed for simplicity and speed, KDVM acts as a perfect educational foundation
 KDVM uses a hybrid Harvard architecture concept with three distinct memory planes:
 1. **PROGRAM (1024 words):** Read-only instruction memory.
 2. **STACK (256 words):** The primary scratchpad for math and variable manipulation.
-3. **RAM (256 words):** Random-access memory for persistent data storage across loops and subroutines.
+3. **RAM (1024 words):** Random-access memory for persistent data storage across loops and subroutines. This consists the GLOBAL[256], HEAP[384], and STACK[384] = 1024 words. It auto sizes itself depending on the RAM specified.
 4. **CALL STACK (64 words):** Dedicated storage for tracking Instruction Pointer (`PC`) return addresses.
+5. **STACK FRAME (STACK_RAM_SIZE):** For a localized memory allocation of each subroutines. This is allocated in the RAM stack, not the VM_STACK.
 
 ## 🛠️ Building and Running
 
@@ -28,7 +30,7 @@ KDVM is highly portable and can be compiled with any standard C compiler. It is 
 ### Compilation
 Compile the multi-file project into a single executable:
 ```bash
-tcc -o kdvm main.c loader.c vm.c
+./build.sh
 
 ```
 
@@ -37,7 +39,7 @@ tcc -o kdvm main.c loader.c vm.c
 Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 
 ```bash
-./kdvm my_program.kdm
+./kdvm /tests/<testfile>.kdm
 
 ```
 
@@ -58,26 +60,31 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `BPUSH <val>` - Pushes a byte onto the stack (bit-casted).
 * `CPUSH <val>` - Pushes a char onto the stack (bit-casted).
 
-### Integer Arithmetic
+### Arithmetic & Type Promotion
 
-* `ADD` / `SUB` / `MUL` / `DIV` - Pops top two values, performs math, pushes result.
+KDVM features dynamic **Implicit Type Promotion** (similar to Java or C). When performing math operations on mixed data types, the VM automatically "levels up" the narrower type to match the wider type to prevent precision loss.
+
+* **Promotion Hierarchy:** `BYTE` → `CHAR` → `INT` → `FLOAT`
+* `ADD` / `SUB` / `MUL` / `DIV` - Pops the top two values, determines their highest common type, performs the math, and pushes the correctly typed result back to the stack.
+
+*(Example: If you `ADD` an `INT` and a `FLOAT`, the VM dynamically casts the integer to a float, performs floating-point addition, and pushes a `FLOAT` result.)*
 
 ### Memory Access
 
-* `STORE` - Pops value, pops address -> Saves value to `RAM[address]`.
-* `LOAD` - Pops address -> Pushes `RAM[address]` to the stack.
-
 Global Scope Store
+* `STORE` - Pops value, pops address -> Saves value to `RAM[address]`.
 * `ISTORE <integer-value> <addr>` - Stores integer value directly to `RAM[addr]`.
 * `FSTORE <float-value> <addr>` - Stores float value directly to `RAM[addr]`.
 * `CSTORE <char-value> <addr>` - Stores char value directly to `RAM[addr]`.
 * `BSTORE <byte-value> <addr>` - Stores byte value directly to `RAM[addr]`.
+* `LOAD` - Pops address -> Pushes the value `RAM[address]` to the stack.
 
 Local Scope Store
-* `ISTORE_L <integer-value> &<var_name>` - Stores a local integer value to a named variable.
-* `FSTORE_L <float-value>   &<var_name>` - Stores a local float value to a named variable.
-* `CSTORE_L <char-value>    &<var_name>` - Stores a local char value to a named variable.
-* `BSTORE_L <byte-value>    &<var_name>` - Stores a local byte value to a named variable.
+* `ISTORE_L <integer-value> $<var_name>` - Stores a local integer value to a named variable.
+* `FSTORE_L <float-value>   $<var_name>` - Stores a local float value to a named variable.
+* `CSTORE_L <char-value>    $<var_name>` - Stores a local char value to a named variable.
+* `BSTORE_L <byte-value>    $<var_name>` - Stores a local byte value to a named variable.
+* `LOAD_L $<var_name>` - Resolves local variable offset -> Pushes the value at `RAM[sfp + offset]` to the stack.
 
 ### Control Flow
 
@@ -96,37 +103,82 @@ Local Scope Store
 * `::<subroutine>` - is how we define a sub-routine. It is basically just an index. All sub-routine must end with a `RET`
 * `CALL <subroutine>` - Push current `PC` to Call Stack, jump to target.
 * `RET` - Pop address from Call Stack and return `PC` there.
-* `OUT` - Pops and prints an integer to the terminal.
+* `OUT` - Pops and prints the data to the terminal. It is smart enough to distinguish types.
 * `IN <type>` - Pauses execution, waits for user input, pushes to stack. TYPES [ INT = 0, FLOAT = 1, CHAR = 2, BYTE = 3]
 
 The program starts with a main sub-routine and it should be named ::_global.
 This is a reserved subroutine name so that the VM knows where to start executing the program.
 
-## 💻 Example Code (`test.kdm`)
+## 💻 Example Code (`tests/test_fib2.kdm`)
 
-Here is an example program that uses functions and comparisons to check if 15 is less than 20:
-
+Here is an example program that calculates the nth Fibonacci number to demonstrate loops, memory access, and subroutines:
+`INFO: This example uses GLOBAL address space`
 ```text
-# --- MAIN PROGRAM ---
+# ---------------------------------------------------------
+# Subroutine: fib_logic
+# ---------------------------------------------------------
+::fib_logic
+    # 1. Loop Condition (n == 0?)
+    DUP             # 0  | Stack: [n, n]
+    PUSH 0          # 1  | Stack: [n, n, 0]
+    CMPEQ           # 3  | Stack: [n, n==0]
+    JNZ 29          # 4  | Jump to POP at offset 29
 
-# --- SUBROUTINE:item_a Print the boolean result (1 = True, 0 = False)
-::print
+    # 2. Calculate sum = a + b
+    PUSH 0          # 6  | Addr 0
+    LOAD            # 8  | Stack: [n, a]
+    PUSH 1          # 9  | Addr 1
+    LOAD            # 11 | Stack: [n, a, b]
+    ADD             # 12 | Stack: [n, sum]
+
+    # 3. Move b to a (RAM[0] = RAM[1])
+    # We do this FIRST before overwriting RAM[1]
+    PUSH 1          # 13 | Addr 1
+    LOAD            # 15 | Stack: [n, sum, b]
+    PUSH 0          # 16 | Addr 0
+    SWAP            # 18 | Stack: [n, sum, 0, b]
+    STORE           # 19 | RAM[0] = b. Stack: [n, sum]
+
+    # 4. Store sum to b (RAM[1] = sum)
+    PUSH 1          # 20 | Addr 1
+    SWAP            # 22 | Stack: [n, 1, sum]
+    STORE           # 23 | RAM[1] = sum. Stack: [n]
+
+    # 5. Decrement n & Loop
+    PUSH 1          # 24 | Stack: [n, 1]
+    SUB             # 26 | Stack: [n-1]
+    JUMP 0          # 27 | Loop back to 0
+# ---------------------------------------------------------
+# Exit Scope
+# ---------------------------------------------------------
+    POP             # 29 | Clean up the 0
+    RET             # 30 | Return to caller
+
+# ---------------------------------------------------------
+# Main Entry Point
+# ---------------------------------------------------------
+::_global
+    # 1. Target Fibonacci Number ( type any integer )
+    IN 0
+
+    # 2. Initialize RAM[0] = 0 (a)
+    PUSH 0
+    PUSH 0
+    STORE
+
+    # 3. Initialize RAM[1] = 1 (b)
+    PUSH 1
+    PUSH 1
+    STORE
+
+    # 4. Run loop
+    CALL fib_logic
+
+    # 5. Output Result
+    # If n=5, RAM[0] contains the 5th number (5)
+    PUSH 0
+    LOAD
     OUT
     HALT
-    RET
-
-# --- SUBROUTINE: is_less_than (Index 8) ---
-::is_less_than
-    CMPLT   # Pushes 1 if 15 < 20
-    RET     # Returns to main
-    
-::_global
-    PUSH 15
-    PUSH 20
-
-    # Call the "::is_less_than" subroutine
-    CALL is_less_than
-    CALL print
-    RET
 
 ```

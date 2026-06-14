@@ -9,6 +9,6 @@ The purpose of this file is to track my goals to determine which will be discard
 2. 
 
 ## Functionality
-1. Variables - Memory mapped names (So we can avoid hardcoding mem-address)
+1. Variables - Memory mapped names (So we can avoid hardcoding mem-address) [DONE]
 2. MOV $a $b - copy the value of a to b.
-3. Stack Frames - for variable scoping and lifetime.
+3. Stack Frames - for variable scoping and lifetime. [DONE]
