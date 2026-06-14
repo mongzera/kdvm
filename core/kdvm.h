@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "vm_handler.h"
+#include <stdlib.h>
 
 #define VM_PROGRAM_MEM      1024
 #define VM_STACK_SIZE       256
@@ -22,9 +23,21 @@
 #define CALL_STACK_MEM 64
 #define MAX_HANDLES 64
 
+// Stack operations
 #define VM_POP(vm) vm->stack[vm->sp--]
 #define VM_PUSH(vm, val) vm->stack[++vm->sp] = val
 #define VM_PEEK(vm) vm->stack[vm->sp]
+
+// Stack frame operations
+#define VM_SF_PUSH(vm, stack_frame) vm->stack_frame[++vm->sfp] = stack_frame
+#define VM_SF_POP(vm) vm->stack_frame[vm->sfp--]
+#define VM_SF_PEEK(vm) vm->stack_frame[vm->sfp]
+
+
+typedef struct{
+    uint32_t start;
+    uint32_t local_variable_count;
+} LocalStackFrame;
 
 // Helper union for bit-casting
 typedef enum {
@@ -122,12 +135,14 @@ typedef struct {
     PrimitiveValue stack[VM_STACK_SIZE];
     PrimitiveValue ram[VM_RAM_SIZE];         // [0]-> RAM_MEM: GLOBAL [1/4], HEAP[1/2], STACK [1/2]
     uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
-
     VM_Handle handle[MAX_HANDLES];
 
-    uint32_t pc;    // Program Counter
-    uint32_t  sp;    // Stack Pointer
-    uint32_t  csp;   // Call Stack Pointer
+    LocalStackFrame stack_frame[STACK_RAM_SIZE];
+
+    int64_t pc;    // Program Counter
+    int64_t sp;    // Stack Pointer
+    int64_t csp;   // Call Stack Pointer
+    int64_t sfp;   // Stack Frame Pointer
 
     uint32_t _global_start;
 
