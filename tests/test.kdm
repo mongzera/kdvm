@@ -1,4 +1,23 @@
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
 ::_global
-    PUSH 16
-    PUSH 17
+    PUSH 0
+    IN 0
+    STORE
+    PUSH 0
+    LOAD
+    PUSH 0
+    CMPGT
+    JZ 27
+    CPUSH 'A'
+    OUT
+    PUSH 0
+    PUSH 0
+    LOAD
+    PUSH 1
+    SUB
+    STORE
+    JUMP 5
     HALT

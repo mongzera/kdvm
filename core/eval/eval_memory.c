@@ -171,6 +171,18 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         }
 
         // Local Integer Store
+        case OP_STORE_L: {
+            PrimitiveValue value = VM_POP(vm);
+            uint32_t offset = vm->program[vm->pc++];
+
+            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
+
+            store_stack(vm, frame->start, offset, value);
+            break;
+        }
+
+        // Local Integer Store
         case OP_ISTORE_L: {
             int val = vm->program[vm->pc++];
             uint32_t offset = vm->program[vm->pc++];

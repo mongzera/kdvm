@@ -70,7 +70,7 @@ static int emit_store(VM *vm, uint32_t opcode, const char *cursor, int line_num)
 /* Emit opcode + value (as int32_t bits) + local-variable slot offset.
    BUG FIX: var_name was declared as `char` — a single byte used as a
    string buffer, causing a stack smash on any real variable name. */
-static int emit_store_local(VM *vm, uint32_t opcode, const char *cursor,
+static int emit_store_load_local(VM *vm, uint32_t opcode, const char *cursor,
                              struct subroutine_ctx *sub, int line_num) {
     int  n = 0;
     char var_name[MAX_NAME];   /* fixed: was `char var_name;` */
@@ -111,6 +111,21 @@ static int emit_store_local(VM *vm, uint32_t opcode, const char *cursor,
         }
         uint32_t offset = get_create_local_var(sub, var_name);
         EMIT(opcode); EMIT((int32_t)value); EMIT(offset);
+    } else if (opcode == OP_STORE_L){
+        // STORE_L
+        if (sscanf(cursor, "%63s", var_name) != 1) {
+            parse_error("Line %d: Expected variable name.", line_num); return -1;
+        }
+        uint32_t offset = get_create_local_var(sub, var_name);
+        EMIT(opcode); EMIT(offset);
+    }
+    else{
+        // LOAD_L
+        if (sscanf(cursor, "%63s", var_name) != 1) {
+            parse_error("Line %d: Expected variable name.", line_num); return -1;
+        }
+        uint32_t offset = get_create_local_var(sub, var_name);
+        EMIT(opcode); EMIT(offset);
     }
     return 0;
 }
@@ -270,16 +285,19 @@ int load_kdm_file(const char *filename, VM *vm) {
 
         /* ── typed STORE_L (local variable) ──────────────────────────── */
         else if (strcmp(command, "ISTORE_L") == 0 || strcmp(command, "FSTORE_L") == 0 ||
-                 strcmp(command, "CSTORE_L") == 0 || strcmp(command, "BSTORE_L") == 0) {
+                 strcmp(command, "CSTORE_L") == 0 || strcmp(command, "BSTORE_L") == 0 ||
+                 strcmp(command, "STORE_L") == 0 || strcmp(command, "LOAD_L") == 0) {
 
             if (!current_subroutine)   /* BUG FIX: was an unchecked NULL deref */
                 FAIL("Line %d: Local store outside of subroutine.", line_num);
 
             uint32_t opcode = (strcmp(command, "ISTORE_L") == 0) ? OP_ISTORE_L :
                               (strcmp(command, "FSTORE_L") == 0) ? OP_FSTORE_L :
-                              (strcmp(command, "CSTORE_L") == 0) ? OP_CSTORE_L : OP_BSTORE_L;
+                              (strcmp(command, "CSTORE_L") == 0) ? OP_CSTORE_L :
+                              (strcmp(command, "BSTORE_L") == 0) ? OP_BSTORE_L :
+                              (strcmp(command, "STORE_L") == 0)  ? OP_STORE_L : OP_LOAD_L;
 
-            if (emit_store_local(vm, opcode, cursor, current_subroutine, line_num) < 0) { fclose(file); return -1; }
+            if (emit_store_load_local(vm, opcode, cursor, current_subroutine, line_num) < 0) { fclose(file); return -1; }
         }
 
         /* ── unknown instruction ──────────────────────────────────────── */

@@ -25,7 +25,7 @@ KDVM uses a hybrid Harvard architecture concept with three distinct memory plane
 
 ## 🛠️ Building and Running
 
-KDVM is highly portable and can be compiled with any standard C compiler. It is specifically tested and optimized for **TCC (Tiny C Compiler)**.
+KDVM is highly portable and can be compiled with any standard C co                                                                                                                                                                 zawsmpiler. It is specifically tested and optimized for **TCC (Tiny C Compiler)**.
 
 ### Compilation
 Compile the multi-file project into a single executable:
@@ -80,6 +80,7 @@ Global Scope Store
 * `LOAD` - Pops address -> Pushes the value `RAM[address]` to the stack.
 
 Local Scope Store
+* `STORE_L  $<var_name>` - Pops value off stack, then, stores the value to a named variable.
 * `ISTORE_L <integer-value> $<var_name>` - Stores a local integer value to a named variable.
 * `FSTORE_L <float-value>   $<var_name>` - Stores a local float value to a named variable.
 * `CSTORE_L <char-value>    $<var_name>` - Stores a local char value to a named variable.

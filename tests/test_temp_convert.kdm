@@ -4,16 +4,25 @@
 # =========================================================
 ::_global
     PUSH 0
-    IN 0
+    IN 1
     STORE
+    PUSH 1
+    FPUSH 1.8
+    STORE
+    PUSH 2
+    FPUSH 32.0
+    STORE
+    PUSH 3
     PUSH 0
     LOAD
-    PUSH 10
-    CMPGT
-    JZ 18
-    CPUSH 'Y'
-    OUT
-    JUMP 21
-    CPUSH 'N'
+    PUSH 1
+    LOAD
+    MUL
+    PUSH 2
+    LOAD
+    ADD
+    STORE
+    PUSH 3
+    LOAD
     OUT
     HALT

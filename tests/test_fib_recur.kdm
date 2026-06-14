@@ -1,12 +1,49 @@
-::method1
-    ISTORE_L 64 $a
+
+# ---------------------------------------------------------
+# Subroutine: calculate_fact
+# ---------------------------------------------------------
+::calculate_fact
+    PUSH 0
+    LOAD
+    PUSH 1
+    CMPGT
+    JZ 29
+    PUSH 1
+    PUSH 1
+    LOAD
+    PUSH 0
+    LOAD
+    MUL
+    STORE
+    PUSH 0
+    PUSH 0
+    LOAD
+    PUSH 1
+    SUB
+    STORE
+    JUMP 0
     RET
 
+# =========================================================
+# Global / Main entry point
+# =========================================================
 ::_global
-    ISTORE_L 1 $a
-    ISTORE_L 2 $b
-    ISTORE_L 3 $c
-    ISTORE_L 4 $d
-    FSTORE_L 3.14 $pi
-    CALL method1
+    PUSH 0
+    IN 0
+    STORE
+    PUSH 1
+    PUSH 1
+    STORE
+    PUSH 0
+    LOAD
+    PUSH 0
+    CMPLT
+    JZ 23
+    CPUSH 'E'
+    OUT
+    JUMP 29
+    CALL calculate_fact
+    PUSH 1
+    LOAD
+    OUT
     HALT

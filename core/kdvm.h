@@ -112,6 +112,7 @@ typedef enum {
     OP_CSTORE_L = OPT_MEM | 0x0C,
     OP_BSTORE_L = OPT_MEM | 0x0D,
     OP_LOAD_L   = OPT_MEM | 0x0E,
+    OP_STORE_L  = OPT_MEM | 0x0F,
 
     // Control Flow & Subroutines
     OP_JUMP   = OPT_CONTROL | 0x00,
