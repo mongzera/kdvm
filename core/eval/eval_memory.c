@@ -61,7 +61,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 exit(1);
             }
 
-            if (addr.data.u < 0 || addr.data.u >= RAM_MEM) {
+            if (addr.data.u < 0 || addr.data.u >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %d for store.\n", addr.data.u);
                 exit(1);
             }
@@ -76,7 +76,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 exit(1);
             }
 
-            if (addr.data.u < 0 || addr.data.u >= RAM_MEM) {
+            if (addr.data.u < 0 || addr.data.u >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %d for load.\n", addr.data.u);
                 exit(1);
             }
@@ -87,7 +87,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         case OP_ISTORE: {
             int val  = vm->program[vm->pc++];
             uint32_t addr = vm->program[vm->pc++];
-            if (addr < 0 || addr >= RAM_MEM) {
+            if (addr < 0 || addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
             }
@@ -106,7 +106,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
             int32_t raw_bits = vm->program[vm->pc++];
             uint32_t addr = (uint32_t)vm->program[vm->pc++];
 
-            if (addr >= RAM_MEM) {
+            if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for FSTORE.\n", addr);
                 exit(1);
             } else {
@@ -124,7 +124,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
             uint16_t val = (uint16_t)vm->program[vm->pc++];
             uint32_t addr = (uint32_t)vm->program[vm->pc++];
 
-            if (addr >= RAM_MEM) {
+            if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for CSTORE.\n", addr);
                 exit(1);
             } else {
@@ -140,7 +140,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
             int8_t val = (int8_t)vm->program[vm->pc++];
             uint32_t addr = (uint32_t)vm->program[vm->pc++];
 
-            if (addr >= RAM_MEM) {
+            if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for BSTORE.\n", addr);
                 exit(1);
             } else {

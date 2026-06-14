@@ -43,7 +43,7 @@
 # ---------------------------------------------------------
 ::_global
     # 1. Target Fibonacci Number (n = 5)
-    PUSH 5
+    PUSH 13
 
     # 2. Initialize RAM[0] = 0 (a)
     ISTORE 0 0

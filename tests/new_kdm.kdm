@@ -1,0 +1,7 @@
+::_global
+    ISTORE 545      $a
+    ISTORE 100      $b
+    FSTORE 3.14159  $pi
+    ADD $a $b $a    # add <a> <b> <dest>
+    MOV $a $c
+    HALT

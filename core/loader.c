@@ -316,7 +316,7 @@ int load_kdm_file(const char* filename, VM* vm) {
             fclose(file); return -1;
         }
 
-        if (vm->program_size + 2 >= PROGRAM_MEM) {
+        if (vm->program_size + 2 >= VM_PROGRAM_MEM) {
             vm_error("Program size exceeds VM capacity.");
             fclose(file); return -1;
         }

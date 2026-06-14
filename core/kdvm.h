@@ -5,10 +5,21 @@
 #include <stdbool.h>
 #include "vm_handler.h"
 
-#define PROGRAM_MEM 1024
-#define STACK_MEM   256
-#define RAM_MEM     256
-#define CALL_STACK_MEM 64 // New: Dedicated stack for function return addresses
+#define VM_PROGRAM_MEM      1024
+#define VM_STACK_SIZE       256
+#define VM_RAM_SIZE         1024
+
+#define GLOBAL_RAM_START    0
+#define HEAP_RAM_START      VM_RAM_SIZE / 4
+#define STACK_RAM_START     VM_RAM_SIZE - HEAP_RAM_START
+
+#define GLOBAL_RAM_SIZE     HEAP_RAM_START - GLOBAL_RAM_START
+#define HEAP_RAM_SIZE       STACK_RAM_START - HEAP_RAM_START
+#define STACK_RAM_SIZE      VM_RAM_SIZE - STACK_RAM_START
+
+#define mem_is_out_of_bounds(addr, start, size) ((addr) < (start) || (addr) >= ((start) + (size)))
+
+#define CALL_STACK_MEM 64
 #define MAX_HANDLES 64
 
 #define VM_POP(vm) vm->stack[vm->sp--]
@@ -87,7 +98,7 @@ typedef enum {
     OP_JNZ    = OPT_CONTROL | 0x01,
     OP_JZ     = OPT_CONTROL | 0x02,
     OP_CMPEQ  = OPT_CONTROL | 0x03,
-    OP_CMPNEQ  = OPT_CONTROL | 0x04,
+    OP_CMPNEQ = OPT_CONTROL | 0x04,
     OP_CMPLT  = OPT_CONTROL | 0x05,
     OP_CMPLE  = OPT_CONTROL | 0x06,
     OP_CMPGT  = OPT_CONTROL | 0x07,
@@ -107,10 +118,10 @@ typedef enum {
 
 // The encapsulated VM State
 typedef struct {
-    uint32_t program[PROGRAM_MEM];
-    PrimitiveValue stack[STACK_MEM];
-    PrimitiveValue ram[RAM_MEM];
-    uint32_t call_stack[CALL_STACK_MEM];
+    uint32_t program[VM_PROGRAM_MEM];
+    PrimitiveValue stack[VM_STACK_SIZE];
+    PrimitiveValue ram[VM_RAM_SIZE];         // [0]-> RAM_MEM: GLOBAL [1/4], HEAP[1/2], STACK [1/2]
+    uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
 
     VM_Handle handle[MAX_HANDLES];
 
