@@ -67,10 +67,17 @@ Write your assembly instructions in a `.kdm` file, then pass it to the VM:
 * `STORE` - Pops value, pops address -> Saves value to `RAM[address]`.
 * `LOAD` - Pops address -> Pushes `RAM[address]` to the stack.
 
+Global Scope Store
 * `ISTORE <integer-value> <addr>` - Stores integer value directly to `RAM[addr]`.
 * `FSTORE <float-value> <addr>` - Stores float value directly to `RAM[addr]`.
 * `CSTORE <char-value> <addr>` - Stores char value directly to `RAM[addr]`.
 * `BSTORE <byte-value> <addr>` - Stores byte value directly to `RAM[addr]`.
+
+Local Scope Store
+* `ISTORE_L <integer-value> &<var_name>` - Stores a local integer value to a named variable.
+* `FSTORE_L <float-value>   &<var_name>` - Stores a local float value to a named variable.
+* `CSTORE_L <char-value>    &<var_name>` - Stores a local char value to a named variable.
+* `BSTORE_L <byte-value>    &<var_name>` - Stores a local byte value to a named variable.
 
 ### Control Flow
 

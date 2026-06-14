@@ -7,6 +7,25 @@
 #include "../core/kdvm.h"
 #include <stdlib.h>
 
+static inline uint32_t store_global(VM* vm, uint32_t address, PrimitiveValue value) {
+
+    if(mem_is_out_of_bounds(address, GLOBAL_RAM_START, GLOBAL_RAM_SIZE)) {
+        vm_error("SegFault: Global store out of bounds!");
+        exit(-1);
+    }
+    vm->ram[address] = value;
+    return 0;
+}
+
+static inline PrimitiveValue load_global(VM* vm, uint32_t address) {
+
+    if(mem_is_out_of_bounds(address, GLOBAL_RAM_START, GLOBAL_RAM_SIZE)) {
+        vm_error("SegFault: Global load out of bounds!");
+        exit(-1);
+    }
+    return vm->ram[address];
+}
+
 /*
  * Allocates n bytes and returns heap_address
  * @returns heap_address, -1 if error

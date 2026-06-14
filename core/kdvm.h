@@ -31,7 +31,7 @@
 // Stack frame operations
 #define VM_SF_PUSH(vm, stack_frame) vm->stack_frame[++vm->sfp] = stack_frame
 #define VM_SF_POP(vm) vm->stack_frame[vm->sfp--]
-#define VM_SF_PEEK(vm) vm->stack_frame[vm->sfp]
+#define VM_SF_PEEK(vm) &vm->stack_frame[vm->sfp]
 
 
 typedef struct{
@@ -98,13 +98,20 @@ typedef enum {
     OP_DEC    = OPT_IMATH | 0x06,
 
     // Memory (RAM)
-    OP_STORE  = OPT_MEM | 0x00,
-    OP_LOAD   = OPT_MEM | 0x01,
-    OP_MSET   = OPT_MEM | 0x02, // Memory set
-    OP_ISTORE = OPT_MEM | 0x03,
-    OP_FSTORE = OPT_MEM | 0x04,
-    OP_CSTORE = OPT_MEM | 0x05,
-    OP_BSTORE = OPT_MEM | 0x06,
+    OP_STORE    = OPT_MEM | 0x00,
+    OP_LOAD     = OPT_MEM | 0x01,
+    OP_MSET     = OPT_MEM | 0x02, // Memory set
+
+    OP_ISTORE   = OPT_MEM | 0x03,
+    OP_FSTORE   = OPT_MEM | 0x04,
+    OP_CSTORE   = OPT_MEM | 0x05,
+    OP_BSTORE   = OPT_MEM | 0x06,
+
+    OP_ISTORE_L = OPT_MEM | 0x0A,
+    OP_FSTORE_L = OPT_MEM | 0x0B,
+    OP_CSTORE_L = OPT_MEM | 0x0C,
+    OP_BSTORE_L = OPT_MEM | 0x0D,
+    OP_LOAD_L   = OPT_MEM | 0x0E,
 
     // Control Flow & Subroutines
     OP_JUMP   = OPT_CONTROL | 0x00,

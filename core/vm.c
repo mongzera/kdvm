@@ -9,11 +9,17 @@ void vm_init(VM* vm) {
     vm->pc = 0;
     vm->sp = -1;
     vm->csp = -1;
+    vm->sfp = -1;
     vm->program_size = 0;
 }
 
 int vm_execute(VM* vm) {
     vm->pc = vm->_global_start;
+
+    // push initial stack frame for entry
+    LocalStackFrame stack_frame = {0, 0};
+    VM_SF_PUSH(vm, stack_frame);
+
     while (1) {
 
         uint32_t opcode = vm->program[vm->pc++];
