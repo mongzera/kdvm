@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "core/kdvm.h"
+#include "assembler/assember.h"
 #include <time.h>
 
 int main(int argc, char* argv[]) {

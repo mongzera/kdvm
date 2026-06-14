@@ -1,18 +1,7 @@
-#include "kdvm.h"
-#include <stdarg.h>
-#include <stdint.h>
+#include "assember.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include "../util/hashmap/hashmap.h"
 
 #define EMIT(x) vm->program[vm->program_size++] = (x)
-
-struct subroutine_ctx{
-    const char* name;
-    int program_line;
-};
 
 void parse_error(const char* message, ...) {
     printf("[PARSE ERROR] ");
@@ -35,23 +24,6 @@ FILE* read_file(const char* filename){
     }
 
     return file;
-}
-
-uint64_t subroutine_hash(const void* item, uint64_t seed0, uint64_t seed1){
-    const struct subroutine_ctx *subroutine = item;
-
-    const char* str_routine_name = subroutine->name;
-    return hashmap_sip(str_routine_name, strlen(str_routine_name), seed0, seed1);
-}
-
-int subroutine_cmp(const void* a, const void* b, void *udata){
-
-    const struct subroutine_ctx * item_a = a;
-    const struct subroutine_ctx * item_b = b;
-
-    const char* str_a = item_a->name;
-    const char* str_b = item_b->name;
-    return strcmp(str_a, str_b);
 }
 
 int load_kdm_file(const char* filename, VM* vm) {
@@ -94,11 +66,12 @@ int load_kdm_file(const char* filename, VM* vm) {
                 return -1;
             }
 
-            struct subroutine_ctx *subroutine = malloc(sizeof(*subroutine));;
+            struct subroutine_ctx *subroutine = malloc(sizeof(*subroutine));
 
             const char* subroutine_name = &command[2];
             subroutine->name = strdup(subroutine_name);
             subroutine->program_line = vm->program_size;
+            subroutine->local_var_map = hashmap_new(64, 0, 0, 0, local_var_hash, local_var_cmp, NULL, NULL);
 
             hashmap_set(subroutine_map, subroutine);
 
@@ -209,6 +182,74 @@ int load_kdm_file(const char* filename, VM* vm) {
                 }
                 EMIT(opcode); EMIT((int32_t)value); EMIT(addr);
             }
+        }
+
+        else if (strcmp(command, "ISTORE_L") == 0 || strcmp(command, "FSTORE_L") == 0 ||
+                 strcmp(command, "CSTORE_L") == 0 || strcmp(command, "BSTORE_L") == 0) {
+
+            uint32_t opcode = (strcmp(command, "ISTORE_L") == 0) ? OP_ISTORE_L :
+                              (strcmp(command, "FSTORE_L") == 0) ? OP_FSTORE_L :
+                              (strcmp(command, "CSTORE_L") == 0) ? OP_CSTORE_L : OP_BSTORE_L;
+
+            int bytes_read = 0;
+            char var_name;
+
+            // Handle the specific value parsing per type
+            if (opcode == OP_ISTORE_L || opcode == OP_BSTORE_L) {
+                int value;
+                if (sscanf(cursor, "%i%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected integer/byte value.\n", line_num);
+                    fclose(file); return -1;
+                }
+                cursor += bytes_read;
+                if (sscanf(cursor, "%s", &var_name) != 1) {
+                    parse_error("Line %d: Expected variable name.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                uint32_t offset = get_create_local_var(current_subroutine, &var_name);
+
+                // Emit as int32_t to maintain stream consistency
+                EMIT(opcode); EMIT((int32_t)value); EMIT(offset);
+            }
+            else if (opcode == OP_FSTORE_L) {
+                float value;
+                if (sscanf(cursor, "%f%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected float value.\n", line_num);
+                    fclose(file); return -1;
+                }
+                cursor += bytes_read;
+                if (sscanf(cursor, "%s", &var_name) != 1) {
+                    parse_error("Line %d: Expected variable name.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                uint32_t offset = get_create_local_var(current_subroutine, &var_name);
+
+                // Use a union to bit-cast the float for storage
+                union { float f; int32_t i; } pun;
+                pun.f = value;
+                EMIT(opcode); EMIT(pun.i); EMIT(offset);
+            }
+            else if (opcode == OP_CSTORE_L) {
+                char value;
+                // Parse character inside single quotes: 'X'
+                if (sscanf(cursor, " '%c'%n", &value, &bytes_read) != 1) {
+                    parse_error("Line %d: Expected char in format 'X'.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                cursor += bytes_read;
+                if (sscanf(cursor, "%s", &var_name) != 1) {
+                    parse_error("Line %d: Expected variable name.\n", line_num);
+                    fclose(file); return -1;
+                }
+
+                uint32_t offset = get_create_local_var(current_subroutine, &var_name);
+                EMIT(opcode); EMIT((int32_t)value); EMIT(offset);
+            }
+
+
         }
 
         else if(strcmp(command, "PUSH") == 0 || strcmp(command, "FPUSH") == 0 || strcmp(command, "CPUSH") == 0 || strcmp(command, "BPUSH") == 0){

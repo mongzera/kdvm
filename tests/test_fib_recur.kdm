@@ -1,2 +1,12 @@
+::method1
+    ISTORE_L 64 $a
+    RET
+
 ::_global
-    ISTORE_L
+    ISTORE_L 1 $a
+    ISTORE_L 2 $b
+    ISTORE_L 3 $c
+    ISTORE_L 4 $d
+    FSTORE_L 3.14 $pi
+    CALL method1
+    HALT
