@@ -184,7 +184,11 @@ int load_kdm_file(const char *filename, VM *vm) {
         else if (strcmp(command, "STORE") == 0) EMIT(OP_STORE);
         else if (strcmp(command, "LOAD")  == 0) EMIT(OP_LOAD);
         else if (strcmp(command, "CMPEQ") == 0) EMIT(OP_CMPEQ);
+        else if (strcmp(command, "CMPNEQ") == 0) EMIT(OP_CMPNEQ);
         else if (strcmp(command, "CMPLT") == 0) EMIT(OP_CMPLT);
+        else if (strcmp(command, "CMPLE") == 0) EMIT(OP_CMPLE);
+        else if (strcmp(command, "CMPGT") == 0) EMIT(OP_CMPGT);
+        else if (strcmp(command, "CMPGE") == 0) EMIT(OP_CMPGE);
         else if (strcmp(command, "OUT")   == 0) EMIT(OP_OUT);
         else if (strcmp(command, "FOUT")  == 0) EMIT(OP_FOUT);
         else if (strcmp(command, "RET")   == 0) { defining_subroutine = false; EMIT(OP_RET); }
