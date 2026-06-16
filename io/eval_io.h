@@ -4,6 +4,6 @@
 #include "../core/kdvm.h"
 #include <stdio.h>
 
-int io_vm_execute(VM* vm, uint32_t opcode);
+int io_vm_execute(VM* vm, VM_Thread *thread, uint32_t opcode);
 
 #endif

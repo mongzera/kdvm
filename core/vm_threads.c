@@ -25,6 +25,11 @@ VM_Thread *vm_request_thread(VM* vm) {
 
     vm_init_thread(vm, thread);
 
+    // set the thread to active
+    thread->status = THREAD_ACTIVE;
+    LocalStackFrame stack_frame = {0, 0};
+    VM_THREAD_SF_PUSH(thread, stack_frame);
+    printf("[THREAD] Requested Thread.\n");
     return thread;
 }
 
@@ -40,7 +45,7 @@ VM_Thread *vm_get_thread(VM* vm, int thread_id){
 
 
 void vm_init_thread(VM* vm, VM_Thread *thread){
-    if(thread == NULL) vm_error("Cannot initialize thread! Thread is null."); exit(-1);
+    if(thread == NULL) {vm_error("Cannot initialize thread! Thread is null."); exit(-1);}
     thread->pc = vm->_global_start;
     thread->sp = -1;
     thread->csp = -1;

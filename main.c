@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "core/kdvm.h"
 #include "assembler/assember.h"
+#include <stdlib.h>
 #include <time.h>
 
 typedef enum Commands {
@@ -19,20 +20,34 @@ void print_help(int argc, char* argv[]){
     printf("Usage: %s -c, --help <program.kdm> to compile to objects.\n", argv[0]);
 }
 
+void print_done(const char* msg){
+    printf("[DONE] %s\n", msg);
+}
+
+void print_running(const char* msg){
+    printf("[RUNNING] %s\n", msg);
+}
+
 void command_run_vm(char* filename){
     // Initialize a Single VM Instance for now
-    VM my_machine;
-    vm_init(&my_machine);
+
+    print_running("VM Initialization...");
+
+    VM *my_machine = (VM*)malloc(sizeof(VM));
+    vm_init(my_machine);
+
+    print_done("VM Initialization...");
 
     // Load the program into this specific instance
-    if (load_kdm_file(filename, &my_machine) != 0) return;
-
+    print_running("KDM File Loading...");
+    if (load_kdm_file(filename, my_machine) != 0) return;
+    print_done("KDM File Loading...");
     struct timespec start, end;
 
     // Execute
     printf("--- Execution Started ---\n");
     clock_gettime(CLOCK_MONOTONIC, &start);
-    vm_execute(&my_machine);
+    vm_execute(my_machine);
     clock_gettime(CLOCK_MONOTONIC, &end);
     printf("--- Execution Halted ---\n");
 
@@ -43,11 +58,14 @@ void command_run_vm(char* filename){
 }
 
 int command = -1;
+
 int main(int argc, char* argv[]) {
+
     if (argc < 2) {
         print_help(argc, argv);
         return 1;
     }
+
 
     if(strcmp(argv[1], "-r") == 0 || strcmp(argv[1], "--run") == 0) command = COMMAND_RUN;
     else if(strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--compile") == 0) command = COMMAND_RUN;

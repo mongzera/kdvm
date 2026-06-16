@@ -38,9 +38,9 @@ uint32_t        malloc_heap(VM* vm, uint32_t size);
 void            free_heap(VM* vm, uint32_t addr);
 
 static inline uint32_t store_stack(VM* vm, uint32_t fp, uint32_t offset, PrimitiveValue value) {
-    uint32_t address = STACK_RAM_START + fp + offset;
+    uint32_t address = fp + offset;
 
-    if(mem_is_out_of_bounds(address, STACK_RAM_START, STACK_RAM_SIZE)) {
+    if(mem_is_out_of_bounds(address, 0, THREAD_STACK_SIZE)) {
         vm_error("SegFault: Stack store out of bounds!");
         exit(-1);
     }
@@ -49,8 +49,8 @@ static inline uint32_t store_stack(VM* vm, uint32_t fp, uint32_t offset, Primiti
 }
 
 static inline PrimitiveValue load_stack(VM* vm, uint32_t fp, uint32_t offset) {
-    uint32_t address = STACK_RAM_START + fp + offset;
-    if(mem_is_out_of_bounds(address, STACK_RAM_START, STACK_RAM_SIZE)) {
+    uint32_t address = fp + offset;
+    if(mem_is_out_of_bounds(address, 0, THREAD_STACK_SIZE)) {
         vm_error("SegFault: Stack load out of bounds!");
         exit(-1);
     }
