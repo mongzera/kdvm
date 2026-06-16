@@ -51,16 +51,16 @@ int control_flow_vm_execute(VM* vm, VM_Thread *thread, uint32_t opcode){
             break;
         }
 
-        case OP_JUMP: thread->pc = vm->program[thread->pc]; break;
+        case OP_JUMP: thread->pc = VM_GET_INSTRUCTION(vm, thread->pc); break;
 
         case OP_JNZ: {
-            uint32_t target = vm->program[thread->pc];
+            uint32_t target = VM_GET_INSTRUCTION(vm, thread->pc);
             if ((VM_THREAD_POP(thread)).data.u != 0) thread->pc = target;
             break;
         }
 
         case OP_JZ: {
-            uint32_t target = vm->program[thread->pc];
+            uint32_t target = VM_GET_INSTRUCTION(vm, thread->pc);
             if ((VM_THREAD_POP(thread)).data.u == 0) thread->pc = target;
             break;
         }

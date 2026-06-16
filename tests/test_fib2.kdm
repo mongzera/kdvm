@@ -57,7 +57,8 @@
 
     # 4. Run loop
     CALL fib_logic
-
+    PUSH 9
+    OUT
     # 5. Output Result
     # If n=5, RAM[0] contains the 5th number (5)
     PUSH 0
