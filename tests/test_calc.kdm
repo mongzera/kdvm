@@ -1,0 +1,105 @@
+
+# ---------------------------------------------------------
+# Subroutine: add
+# ---------------------------------------------------------
+::add
+    STORE_L $b
+    STORE_L $a
+    LOAD_L $a
+    LOAD_L $b
+    ADD
+    OUT
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: sub
+# ---------------------------------------------------------
+::sub
+    STORE_L $b
+    STORE_L $a
+    LOAD_L $a
+    LOAD_L $b
+    SUB
+    OUT
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: mul
+# ---------------------------------------------------------
+::mul
+    STORE_L $b
+    STORE_L $a
+    LOAD_L $a
+    LOAD_L $b
+    MUL
+    OUT
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: div
+# ---------------------------------------------------------
+::div
+    STORE_L $b
+    STORE_L $a
+    LOAD_L $b
+    PUSH 0
+    CMPEQ
+    JZ 16
+    CPUSH 'E'
+    OUT
+    JUMP 22
+    LOAD_L $a
+    LOAD_L $b
+    DIV
+    OUT
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: operation
+# ---------------------------------------------------------
+::operation
+    IN 0
+    STORE_L $op
+    IN 1
+    STORE_L $a
+    IN 1
+    STORE_L $b
+    LOAD_L $op
+    PUSH 0
+    CMPEQ
+    JZ 25
+    LOAD_L $a
+    LOAD_L $b
+    CALL add
+    LOAD_L $op
+    PUSH 1
+    CMPEQ
+    JZ 38
+    LOAD_L $a
+    LOAD_L $b
+    CALL sub
+    LOAD_L $op
+    PUSH 2
+    CMPEQ
+    JZ 51
+    LOAD_L $a
+    LOAD_L $b
+    CALL mul
+    LOAD_L $op
+    PUSH 3
+    CMPEQ
+    JZ 64
+    LOAD_L $a
+    LOAD_L $b
+    CALL div
+    RET
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
+::_global
+    PUSH 1
+    JZ 8
+    CALL operation
+    JUMP 0
+    HALT

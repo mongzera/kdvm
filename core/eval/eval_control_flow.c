@@ -74,14 +74,14 @@ int control_flow_vm_execute(VM* vm, VM_Thread *thread, uint32_t opcode){
                 exit(-1);
             }
 
-            thread->call_stack[++thread->csp] = thread->pc; // Save return address
+            thread->call_stack[++thread->csp] = thread->pc; // Save return address, for the call-stack of mahuman na ang function.
 
             LocalStackFrame *lastFrame = VM_THREAD_SF_PEEK(thread);
             LocalStackFrame stack_frame = {lastFrame->start + lastFrame->local_variable_count, 0};
             if(thread->sfp >= THREAD_STACK_SIZE-1) {vm_error("Stack Frame Overflow!"); exit(-1);};
             VM_THREAD_SF_PUSH(thread, stack_frame);
 
-            thread->pc = target;                    // Jump
+            thread->pc = target; // Change program counter kay muambak na
             break;
         }
         case OP_RET: {
