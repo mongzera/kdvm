@@ -205,7 +205,9 @@ int load_kdm_file(const char *filename, VM *vm) {
         else if (strcmp(command, "CMPGT") == 0) EMIT(OP_CMPGT);
         else if (strcmp(command, "CMPGE") == 0) EMIT(OP_CMPGE);
         else if (strcmp(command, "OUT")   == 0) EMIT(OP_OUT);
+        else if (strcmp(command, "OUT_LN")   == 0) EMIT(OP_OUT_LN);
         else if (strcmp(command, "FOUT")  == 0) EMIT(OP_FOUT);
+        else if (strcmp(command, "FOUT_LN")  == 0) EMIT(OP_FOUT_LN);
         else if (strcmp(command, "RET")   == 0) { defining_subroutine = false; EMIT(OP_RET); }
 
         /* ── IN <int> ─────────────────────────────────────────────────── */
@@ -235,9 +237,35 @@ int load_kdm_file(const char *filename, VM *vm) {
                 union { float f; int32_t i; } pun = { .f = v };
                 EMIT(pun.i);
             } else if (opcode == OP_CPUSH) {
+
+                //TODO:: encapsulate this code segment, too big!
+                // 1. Skip leading whitespace
+                const char *p = cursor;
+                while (*p == ' ') p++;
+
+                // 2. Expect an opening quote
+                if (*p != '\'') FAIL("Line %d: Expected opening quote.", line_num);
+                p++;
+
+                // 3. Determine if it is empty ('') or contains a char
                 char v;
-                if (sscanf(cursor, " '%c'", &v) != 1) FAIL("Line %d: Expected format CPUSH 'X'.", line_num);
+                if (*p == '\'') {
+                    // Empty: ''
+                    v = 0;
+                } else {
+                    // Contains a char (e.g., 'A')
+                    v = *p;
+                    p++;
+                }
+
+                // 4. Expect a closing quote
+                if (*p != '\'') FAIL("Line %d: Expected closing quote.", line_num);
+                p++;
+
+                // 5. Success
                 EMIT((int32_t)v);
+                // Optional: Update 'cursor' to point after this token
+                cursor = (char *)p;
             } else { /* OP_BPUSH */
                 int v;
                 if (sscanf(cursor, "%i", &v) != 1) FAIL("Line %d: Expected byte.", line_num);

@@ -1,0 +1,64 @@
+
+# ---------------------------------------------------------
+# Subroutine: print_hello
+# ---------------------------------------------------------
+::print_hello
+    CPUSH 'H'
+    OUT
+    CPUSH 'E'
+    OUT
+    CPUSH 'L'
+    OUT
+    CPUSH 'L'
+    OUT
+    CPUSH '0'
+    OUT
+    CPUSH ''
+    OUT_LN
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: calculate_sum
+# ---------------------------------------------------------
+::calculate_sum
+    STORE_L $b
+    STORE_L $a
+    LOAD_L $a
+    LOAD_L $b
+    ADD
+    STORE_L $result
+    LOAD_L $result
+    RET
+    RET
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
+::_global
+    PUSH 0
+    PUSH 3
+    STORE
+    PUSH 0
+    LOAD
+    PUSH 0
+    CMPGT
+    JZ 26
+    CALL print_hello
+    PUSH 0
+    PUSH 0
+    LOAD
+    PUSH 1
+    SUB
+    STORE
+    JUMP 5
+    CPUSH ' '
+    OUT_LN
+    PUSH 1
+    PUSH 5
+    PUSH 7
+    CALL calculate_sum
+    STORE
+    PUSH 1
+    LOAD
+    OUT_LN
+    HALT

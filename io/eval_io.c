@@ -5,6 +5,7 @@ int io_vm_execute(VM *vm, VM_Thread *thread, uint32_t opcode){
     switch (opcode) {
         // I/O
         case OP_OUT:  primitive_print(VM_THREAD_POP(thread)); break;
+        case OP_OUT_LN:  primitive_println(VM_THREAD_POP(thread)); break;
         case OP_IN: {
             // Read the type from the next instruction slot
             uint16_t type = (uint16_t) VM_GET_INSTRUCTION(vm, thread->pc);
@@ -36,6 +37,8 @@ int io_vm_execute(VM *vm, VM_Thread *thread, uint32_t opcode){
             VM_THREAD_PUSH(thread, val);
             break;
         }
+        case OP_FOUT: {VM_THREAD_POP(thread); printf("[OPCODE NOT SUPPORTED] FOUT");}
+        case OP_FOUT_LN: {VM_THREAD_POP(thread); printf("[OPCODE NOT SUPPORTED] FOUT_LN.");}
     }
 
     return EXEC_CONTINUE;

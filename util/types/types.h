@@ -27,5 +27,6 @@ PrimitiveValue primitive_mod(PrimitiveValue a, PrimitiveValue b);
 
 // conversion
 void primitive_print(PrimitiveValue value);
+void primitive_println(PrimitiveValue value);
 
 #endif

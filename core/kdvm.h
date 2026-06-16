@@ -145,8 +145,10 @@ typedef enum {
 
     // I/O
     OP_OUT    = OPT_IO | 0x00,
-    OP_FOUT   = OPT_IO | 0x01,
-    OP_IN     = OPT_IO | 0x02,
+    OP_OUT_LN    = OPT_IO | 0x01,
+    OP_FOUT   = OPT_IO | 0x02,
+    OP_FOUT_LN   = OPT_IO | 0x03,
+    OP_IN     = OPT_IO | 0x04,
 
     OP_SYS_READ   = OPT_SYSCALL | 0x01,
     OP_SYS_WRITE  = OPT_SYSCALL | 0x02,
