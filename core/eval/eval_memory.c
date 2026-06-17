@@ -178,7 +178,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
@@ -191,7 +191,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_INT, .data.u = (uint32_t)val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
@@ -205,7 +205,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_FLOAT, .data.u = (uint32_t)raw_bits };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
@@ -218,7 +218,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_CHAR, .data.c = (char)val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
@@ -231,7 +231,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_BYTE, .data.b = val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
@@ -245,7 +245,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
                 exit(-1);
             }
 
-            VM_THREAD_PUSH(thread, load_stack(vm, frame->start, offset));
+            VM_THREAD_PUSH(thread, load_stack(thread, frame->start, offset));
             break;
         }
 

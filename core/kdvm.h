@@ -144,11 +144,11 @@ typedef enum {
     OP_RET    = OPT_CONTROL | 0x0B,
 
     // I/O
-    OP_OUT    = OPT_IO | 0x00,
-    OP_OUT_LN    = OPT_IO | 0x01,
-    OP_FOUT   = OPT_IO | 0x02,
-    OP_FOUT_LN   = OPT_IO | 0x03,
-    OP_IN     = OPT_IO | 0x04,
+    OP_OUT      = OPT_IO | 0x00,
+    OP_OUT_LN   = OPT_IO | 0x01,
+    OP_FOUT     = OPT_IO | 0x02,
+    OP_FOUT_LN  = OPT_IO | 0x03,
+    OP_IN       = OPT_IO | 0x04,
 
     OP_SYS_READ   = OPT_SYSCALL | 0x01,
     OP_SYS_WRITE  = OPT_SYSCALL | 0x02,
@@ -165,8 +165,8 @@ typedef struct {
     int64_t csp;   // Call Stack Pointer
     int64_t sfp;   // Stack Frame Pointer
     struct VM* vm;      // initialize on init
-    PrimitiveValue stack[VM_STACK_SIZE];
-    PrimitiveValue ram_stack[THREAD_STACK_SIZE];
+    PrimitiveValue stack[VM_STACK_SIZE];         // operation stack
+    PrimitiveValue ram_stack[THREAD_STACK_SIZE]; // ram stack
     LocalStackFrame stack_frame[THREAD_STACK_SIZE];
     uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
     uint8_t status;
