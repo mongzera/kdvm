@@ -87,6 +87,7 @@ typedef enum {
     THREAD_FREE = 0x0,
     THREAD_YIELD,
     THREAD_ACTIVE,
+    THREAD_IO_BLOCKED
 
 } ThreadStatus;
 

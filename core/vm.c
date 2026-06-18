@@ -39,7 +39,7 @@ int vm_execute(VM* vm) {
             VM_Thread *thread = vm->threads[i];
 
             if(thread == NULL) continue;
-            if(thread->status == THREAD_YIELD) continue;
+            if(thread->status == THREAD_YIELD || thread->status == THREAD_IO_BLOCKED) continue;
             if(thread->status == THREAD_FREE){
                 free_threads++;
                 continue;
