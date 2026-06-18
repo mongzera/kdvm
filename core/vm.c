@@ -45,7 +45,11 @@ int vm_execute(VM* vm) {
                 continue;
             }
 
-            uint32_t opcode = vm->program[thread->pc++];
+            // set check point here
+
+            VM_SET_CHECKPOINT(thread);
+
+            uint32_t opcode = VM_GET_INSTRUCTION(vm, thread->pc);
             uint32_t opcode_type = opcode & 0xF0;
 
             switch(opcode_type){

@@ -32,6 +32,7 @@
 #define VM_THREAD_SF_PEEK(vm_thread) &vm_thread->stack_frame[vm_thread->sfp]
 
 #define VM_GET_INSTRUCTION(vm, pc) vm->program[pc++] // auto increment to next instruction
+#define VM_SET_CHECKPOINT(thread) thread->pc_checkpoint = thread->pc // auto increment to next instruction
 
 
 typedef struct{
@@ -162,6 +163,7 @@ struct VM;
 // VM Thread
 typedef struct {
     int64_t pc;    // Program Counter
+    int64_t pc_checkpoint;    // Program Counter checkpoint
     int64_t sp;    // Stack Pointer
     int64_t csp;   // Call Stack Pointer
     int64_t sfp;   // Stack Frame Pointer
@@ -171,6 +173,7 @@ typedef struct {
     LocalStackFrame stack_frame[THREAD_STACK_SIZE];
     uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
     uint8_t status;
+
 } VM_Thread;
 
 typedef struct VM{
