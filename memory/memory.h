@@ -7,6 +7,21 @@
 #include "../core/kdvm.h"
 #include <stdlib.h>
 
+typedef enum HeapBlockStats{
+    BLOCK_FREE = 0x0,
+    BLOCK_INUSE
+};
+
+typedef struct HeapBlock{
+    uint32_t address;
+    uint32_t size;
+    uint8_t block_status;
+    PrimitiveType type;
+    struct HeapBlock *next;
+} HeapBlock;
+
+HeapBlock *create_block(uint32_t offset, uint32_t size, PrimitiveType type);
+
 static inline uint32_t store_global(VM* vm, uint32_t address, PrimitiveValue value) {
 
     if(mem_is_out_of_bounds(address, GLOBAL_RAM_START, GLOBAL_RAM_SIZE)) {
