@@ -52,9 +52,10 @@ typedef enum {
 // Helper union for bit-casting
 typedef enum {
     TYPE_INT = 0x0,
-    TYPE_FLOAT = 0x1,
-    TYPE_CHAR = 0x2,
-    TYPE_BYTE = 0x3
+    TYPE_FLOAT,
+    TYPE_CHAR,
+    TYPE_BYTE,
+    TYPE_ADDRESS
 } PrimitiveType;
 
 typedef struct {
