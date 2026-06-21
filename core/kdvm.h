@@ -41,12 +41,12 @@ typedef struct{
 } LocalStackFrame;
 
 typedef enum {
-    WORD_AVAILABLE = 0x0,
-    WORD_OPEN,
-    WORD_CONSTANT,
-    WORD_LOCKED,
-    WORD_MUTEX_LOCKED,
-    WORD_GARBAGE,
+    WORD_AVAILABLE = 0x0,   // WORD can be claimed by HEAP or STACK for all Data Types
+    WORD_OPEN,              // WORD can be modified by all threads, but this has an existing Data Type and was allocated.
+    WORD_CONSTANT,          // WORD can be read, not modified.
+    WORD_LOCKED,            // WORD is locked by a thread using it mid instruction.
+    WORD_MUTEX_LOCKED,      // WORD is locked by owner thread. Other threads cannot use this.
+    WORD_GARBAGE,           // WORD is declared as garbage, ready to be collected by garbage collector.
 } WordState;
 
 // Helper union for bit-casting

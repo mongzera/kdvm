@@ -1,26 +1,24 @@
 #include "memory.h"
-#include <stdlib.h>
 
-
-HeapBlock *genesis_block = 0;
-
-HeapBlock* create_block(uint32_t offset, uint32_t size, PrimitiveType type){
-    HeapBlock *block =  malloc(sizeof(HeapBlock));
-    block->type = type;
-    block->block_status = BLOCK_INUSE;
-    block->address = offset;
-    block->size = size;
-    block->next = 0;
-
-    return block;
+uint32_t get_level_index(uint32_t lvl){
+    return (1 << lvl) - 1;
 }
 
-void destory_blocks(uint32_t address){
+uint32_t get_level_from_index(uint32_t idx) {
+    uint32_t val = idx + 1;
+    return 31 - __builtin_clz(val);
+}
 
+uint32_t get_left_node(uint32_t idx){
+    return (idx << 1) + 1;
+}
+
+uint32_t get_right_node(uint32_t idx){
+    return (idx << 1) + 2;
 }
 
 uint32_t malloc_heap(VM* vm, uint32_t size){
-
+    return 0;
 }
 
 /*
