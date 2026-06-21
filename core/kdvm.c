@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void vm_error(const char* message) {
-    printf("[VM ERROR] %s\n", message);
+    fprintf(stderr, "[VM ERROR] %s\n", message);
 }
 
 void vm_depr(const char* message) {

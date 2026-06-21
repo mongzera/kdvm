@@ -1,41 +1,41 @@
 #include "eval_math.h"
 #include "../util/types/types.h"
 
-int imath_vm_execute(VM* vm, uint32_t opcode){
+int imath_vm_execute(VM* vm, VM_Thread *thread, uint32_t opcode){
     switch (opcode) {
         case OP_ADD: {
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
-            VM_PUSH(vm, primitive_add(a, b));
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
+            VM_THREAD_PUSH(thread, primitive_add(a, b));
             break;
         }
 
         case OP_SUB: {
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
-            VM_PUSH(vm, primitive_sub(a, b));
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
+            VM_THREAD_PUSH(thread, primitive_sub(a, b));
             break;
         }
 
         case OP_MUL: {
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
-            VM_PUSH(vm, primitive_mul(a, b));
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
+            VM_THREAD_PUSH(thread, primitive_mul(a, b));
             break;
         }
 
         case OP_DIV: {
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
 
-            VM_PUSH(vm, primitive_div(a, b));
+            VM_THREAD_PUSH(thread, primitive_div(a, b));
             break;
 
         }
 
         case OP_MOD: {
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
 
             // Java: integer mod by zero throws exception
             if ((b.type == TYPE_INT && b.data.u == 0) ||
@@ -45,11 +45,11 @@ int imath_vm_execute(VM* vm, uint32_t opcode){
             }
 
             if (b.type == TYPE_FLOAT && b.data.f == 0.0f) {
-                VM_PUSH(vm, primitive_mod(a, b)); // fmod handles it (NaN)
+                VM_THREAD_PUSH(thread, primitive_mod(a, b)); // fmod handles it (NaN)
                 break;
             }
 
-            VM_PUSH(vm, primitive_mod(a, b));
+            VM_THREAD_PUSH(thread, primitive_mod(a, b));
             break;
         }
 

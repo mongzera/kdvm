@@ -1,0 +1,306 @@
+
+# ---------------------------------------------------------
+# Subroutine: cantDivide
+# ---------------------------------------------------------
+::cantDivide
+    CPUSH 'E'
+    OUT
+    CPUSH 'R'
+    OUT
+    CPUSH 'R'
+    OUT
+    CPUSH ':'
+    OUT
+    CPUSH 'C'
+    OUT
+    CPUSH 'A'
+    OUT
+    CPUSH 'N'
+    OUT
+    CPUSH 'N'
+    OUT
+    CPUSH 'O'
+    OUT
+    CPUSH 'T'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH 'I'
+    OUT
+    CPUSH 'V'
+    OUT
+    CPUSH 'I'
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH 'E'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'B'
+    OUT
+    CPUSH 'Y'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH '0'
+    OUT
+    CPUSH '!'
+    OUT_LN
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: sum
+# ---------------------------------------------------------
+::sum
+    STORE_L $b
+    STORE_L $a
+    CPUSH 'A'
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    LOAD_L $a
+    LOAD_L $b
+    ADD
+    RET
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: sub
+# ---------------------------------------------------------
+::sub
+    STORE_L $b
+    STORE_L $a
+    CPUSH 'S'
+    OUT
+    CPUSH 'U'
+    OUT
+    CPUSH 'B'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    LOAD_L $a
+    LOAD_L $b
+    SUB
+    RET
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: mul
+# ---------------------------------------------------------
+::mul
+    STORE_L $b
+    STORE_L $a
+    CPUSH 'M'
+    OUT
+    CPUSH 'U'
+    OUT
+    CPUSH 'L'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    LOAD_L $a
+    LOAD_L $b
+    MUL
+    RET
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: div
+# ---------------------------------------------------------
+::div
+    STORE_L $b
+    STORE_L $a
+    CPUSH 'D'
+    OUT
+    CPUSH 'I'
+    OUT
+    CPUSH 'V'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    LOAD_L $b
+    PUSH 0
+    CMPEQ
+    JZ 28
+    CALL cantDivide
+    PUSH 0
+    RET
+    LOAD_L $a
+    LOAD_L $b
+    DIV
+    RET
+    RET
+
+# ---------------------------------------------------------
+# Subroutine: print_menu
+# ---------------------------------------------------------
+::print_menu
+    CPUSH '1'
+    OUT
+    CPUSH '.'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'A'
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH ''
+    OUT_LN
+    CPUSH '2'
+    OUT
+    CPUSH '.'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'S'
+    OUT
+    CPUSH 'U'
+    OUT
+    CPUSH 'B'
+    OUT
+    CPUSH ''
+    OUT_LN
+    CPUSH '3'
+    OUT
+    CPUSH '.'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'M'
+    OUT
+    CPUSH 'U'
+    OUT
+    CPUSH 'L'
+    OUT
+    CPUSH ''
+    OUT_LN
+    CPUSH '4'
+    OUT
+    CPUSH '.'
+    OUT
+    CPUSH ' '
+    OUT
+    CPUSH 'D'
+    OUT
+    CPUSH 'I'
+    OUT
+    CPUSH 'V'
+    OUT
+    CPUSH ''
+    OUT_LN
+    RET
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
+::_global
+    PUSH 1
+    JZ 156
+    CALL print_menu
+    CPUSH 'O'
+    OUT
+    CPUSH 'P'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    PUSH 0
+    IN 0
+    STORE
+    CPUSH 'V'
+    OUT
+    CPUSH '1'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    PUSH 1
+    IN 1
+    STORE
+    CPUSH 'V'
+    OUT
+    CPUSH '2'
+    OUT
+    CPUSH ':'
+    OUT_LN
+    PUSH 2
+    IN 1
+    STORE
+    PUSH 3
+    PUSH 0
+    STORE
+    PUSH 0
+    LOAD
+    PUSH 1
+    CMPEQ
+    JZ 78
+    PUSH 3
+    PUSH 1
+    LOAD
+    PUSH 2
+    LOAD
+    CALL sum
+    STORE
+    PUSH 3
+    LOAD
+    OUT_LN
+    JUMP 151
+    PUSH 0
+    LOAD
+    PUSH 2
+    CMPEQ
+    JZ 103
+    PUSH 3
+    PUSH 1
+    LOAD
+    PUSH 2
+    LOAD
+    CALL sub
+    STORE
+    PUSH 3
+    LOAD
+    OUT_LN
+    JUMP 151
+    PUSH 0
+    LOAD
+    PUSH 3
+    CMPEQ
+    JZ 128
+    PUSH 3
+    PUSH 1
+    LOAD
+    PUSH 2
+    LOAD
+    CALL mul
+    STORE
+    PUSH 3
+    LOAD
+    OUT_LN
+    JUMP 151
+    PUSH 0
+    LOAD
+    PUSH 4
+    CMPEQ
+    JZ 151
+    PUSH 3
+    PUSH 1
+    LOAD
+    PUSH 2
+    LOAD
+    CALL div
+    STORE
+    PUSH 3
+    LOAD
+    OUT_LN
+    CPUSH ''
+    OUT_LN
+    JUMP 0
+    HALT

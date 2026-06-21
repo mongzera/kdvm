@@ -4,64 +4,64 @@
 #include "../../util/types/types.h"
 
 
-int stack_vm_execute(VM* vm, uint32_t opcode){
+int stack_vm_execute(VM*vm, VM_Thread* thread, uint32_t opcode){
     switch (opcode) {
         case OP_HALT: return EXEC_NO_ERR;
         case OP_PUSH: {
             PrimitiveValue value;
             value.type = TYPE_INT;
-            value.data.u = vm->program[vm->pc++];
-            VM_PUSH(vm, value);
+            value.data.u = VM_GET_INSTRUCTION(vm, thread->pc);
+            VM_THREAD_PUSH(thread, value);
             break;
         }
         case OP_FPUSH: {
             PrimitiveValue value;
             value.type = TYPE_FLOAT;
-            value.data.u = vm->program[vm->pc++];
-            VM_PUSH(vm, value);
+            value.data.u = VM_GET_INSTRUCTION(vm, thread->pc);
+            VM_THREAD_PUSH(thread, value);
             break;
         }
         case OP_CPUSH: {
             PrimitiveValue value;
             value.type = TYPE_CHAR;
-            value.data.u = vm->program[vm->pc++];
-            VM_PUSH(vm, value);
+            value.data.u = VM_GET_INSTRUCTION(vm, thread->pc);
+            VM_THREAD_PUSH(thread, value);
             break;
         }
         case OP_BPUSH: {
             PrimitiveValue value;
             value.type = TYPE_BYTE;
-            value.data.u = vm->program[vm->pc++];
-            VM_PUSH(vm, value);
+            value.data.u = VM_GET_INSTRUCTION(vm, thread->pc);
+            VM_THREAD_PUSH(thread, value);
             break;
         }
-        case OP_POP:  VM_POP(vm); break;
+        case OP_POP:  VM_THREAD_POP(thread); break;
         case OP_PEEK: {
-            primitive_print(VM_PEEK(vm));
+            primitive_print(VM_THREAD_PEEK(thread));
             break;
         }
         case OP_DUP: {
-            PrimitiveValue value = VM_PEEK(vm);
-            VM_PUSH(vm, value);
+            PrimitiveValue value = VM_THREAD_PEEK(thread);
+            VM_THREAD_PUSH(thread, value);
             break;
         };
         case OP_SWAP: {
-            PrimitiveValue a = VM_POP(vm);
-            PrimitiveValue b = VM_POP(vm);
+            PrimitiveValue a = VM_THREAD_POP(thread);
+            PrimitiveValue b = VM_THREAD_POP(thread);
 
-            VM_PUSH(vm, a);
-            VM_PUSH(vm, b);
+            VM_THREAD_PUSH(thread, a);
+            VM_THREAD_PUSH(thread, b);
 
             break;
         };
         case OP_ROT: {
-            PrimitiveValue c = VM_POP(vm);
-            PrimitiveValue b = VM_POP(vm);
-            PrimitiveValue a = VM_POP(vm);
+            PrimitiveValue c = VM_THREAD_POP(thread);
+            PrimitiveValue b = VM_THREAD_POP(thread);
+            PrimitiveValue a = VM_THREAD_POP(thread);
 
-            VM_PUSH(vm, b);
-            VM_PUSH(vm, c);
-            VM_PUSH(vm, a);
+            VM_THREAD_PUSH(thread, b);
+            VM_THREAD_PUSH(thread, c);
+            VM_THREAD_PUSH(thread, a);
 
             break;
         }
@@ -71,12 +71,12 @@ int stack_vm_execute(VM* vm, uint32_t opcode){
     return EXEC_CONTINUE;
 }
 
-int mem_vm_execute(VM* vm, uint32_t opcode){
+int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
     switch (opcode) {
         // Memory
         case OP_STORE: {
-            PrimitiveValue val = VM_POP(vm);
-            PrimitiveValue addr = VM_POP(vm);
+            PrimitiveValue val = VM_THREAD_POP(thread);
+            PrimitiveValue addr = VM_THREAD_POP(thread);
 
             if(addr.type != TYPE_INT){
                 vm_error("Address should have a type INTEGER!");
@@ -88,21 +88,21 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         }
 
         case OP_LOAD: {
-            PrimitiveValue addr = VM_POP(vm);
+            PrimitiveValue addr = VM_THREAD_POP(thread);
 
             if(addr.type != TYPE_INT){
                 vm_error("Address should have a type INTEGER!");
                 exit(1);
             }
 
-            VM_PUSH(vm, load_global(vm, addr.data.u));
+            VM_THREAD_PUSH(thread, load_global(vm, addr.data.u));
             break;
         }
 
         // for Integer Store
         case OP_ISTORE: {
-            int val  = vm->program[vm->pc++];
-            uint32_t addr = vm->program[vm->pc++];
+            int val  = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t addr = VM_GET_INSTRUCTION(vm, thread->pc);
             if (addr < 0 || addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %d for store.\n", addr);
                 exit(1);
@@ -119,8 +119,8 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         // for Floating Point Store
         case OP_FSTORE: {
             // 1. Read the raw integer bits from the program stream
-            int32_t raw_bits = vm->program[vm->pc++];
-            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+            int32_t raw_bits = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t addr = VM_GET_INSTRUCTION(vm, thread->pc);
 
             if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for FSTORE.\n", addr);
@@ -138,8 +138,8 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
         case OP_CSTORE: {
             // Cast to uint16_t to match your type definition
             // Note: We pull from program stream as int32_t but cast down
-            uint16_t val = (uint16_t)vm->program[vm->pc++];
-            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+            uint16_t val = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t addr = VM_GET_INSTRUCTION(vm, thread->pc);
 
             if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for CSTORE.\n", addr);
@@ -155,8 +155,8 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
 
         // for Byte Store
         case OP_BSTORE: {
-            int8_t val = (int8_t)vm->program[vm->pc++];
-            uint32_t addr = (uint32_t)vm->program[vm->pc++];
+            int8_t val = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t addr = VM_GET_INSTRUCTION(vm, thread->pc);
 
             if (addr >= VM_RAM_SIZE) {
                 printf("Segfault: Invalid RAM address %u for BSTORE.\n", addr);
@@ -172,71 +172,72 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
 
         // Local Integer Store
         case OP_STORE_L: {
-            PrimitiveValue value = VM_POP(vm);
-            uint32_t offset = vm->program[vm->pc++];
+            PrimitiveValue value = VM_THREAD_POP(thread);
+            uint32_t offset = VM_GET_INSTRUCTION(vm, thread->pc);
 
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
         // Local Integer Store
         case OP_ISTORE_L: {
-            int val = vm->program[vm->pc++];
-            uint32_t offset = vm->program[vm->pc++];
+            int val = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t offset = VM_GET_INSTRUCTION(vm, thread->pc);
 
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_INT, .data.u = (uint32_t)val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
         // Local Floating Point Store
         case OP_FSTORE_L: {
-            int32_t raw_bits = vm->program[vm->pc++];
-            uint32_t offset = (uint32_t)vm->program[vm->pc++];
+            int32_t raw_bits = VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t offset = (uint32_t)VM_GET_INSTRUCTION(vm, thread->pc);
 
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            // TODO: Finish Thread
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_FLOAT, .data.u = (uint32_t)raw_bits };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
         // Local Char Store
         case OP_CSTORE_L: {
-            uint16_t val = (uint16_t)vm->program[vm->pc++];
-            uint32_t offset = (uint32_t)vm->program[vm->pc++];
+            uint16_t val = (uint16_t) VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t offset = (uint32_t) VM_GET_INSTRUCTION(vm, thread->pc);
 
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_CHAR, .data.c = (char)val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
         // Local Byte Store
         case OP_BSTORE_L: {
-            int8_t val = (int8_t)vm->program[vm->pc++];
-            uint32_t offset = (uint32_t)vm->program[vm->pc++];
+            int8_t val = (int8_t) VM_GET_INSTRUCTION(vm, thread->pc);
+            uint32_t offset = (uint32_t) VM_GET_INSTRUCTION(vm, thread->pc);
 
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
             if(frame->local_variable_count < offset + 1) frame->local_variable_count = offset + 1;
 
             PrimitiveValue value = { .type = TYPE_BYTE, .data.b = val };
-            store_stack(vm, frame->start, offset, value);
+            store_stack(thread, frame->start, offset, value);
             break;
         }
 
         case OP_LOAD_L: {
-            uint32_t offset = vm->program[vm->pc++];
-            LocalStackFrame *frame = VM_SF_PEEK(vm);
+            uint32_t offset = (uint32_t) VM_GET_INSTRUCTION(vm, thread->pc);
+            LocalStackFrame *frame = VM_THREAD_SF_PEEK(thread);
 
             // Safety: Ensure the assembler didn't generate an invalid offset
             if (offset >= frame->local_variable_count) {
@@ -244,7 +245,7 @@ int mem_vm_execute(VM* vm, uint32_t opcode){
                 exit(-1);
             }
 
-            VM_PUSH(vm, load_stack(vm, frame->start, offset));
+            VM_THREAD_PUSH(thread, load_stack(thread, frame->start, offset));
             break;
         }
 

@@ -1,0 +1,55 @@
+
+# =========================================================
+# Global / Main entry point
+# =========================================================
+::_global
+    PUSH 0
+    PUSH 10
+    STORE
+    PUSH 1
+    PUSH 20
+    STORE
+    PUSH 2
+    PUSH 15
+    STORE
+    PUSH 3
+    PUSH 30
+    STORE
+    PUSH 0
+    LOAD
+    OUT
+    CPUSH ' '
+    OUT
+    PUSH 1
+    LOAD
+    OUT_LN
+    PUSH 0
+    PUSH 0
+    LOAD
+    PUSH 5
+    ADD
+    STORE
+    PUSH 1
+    PUSH 1
+    LOAD
+    PUSH 3
+    LOAD
+    ADD
+    STORE
+    PUSH 4
+    PUSH 0
+    LOAD
+    STORE
+    PUSH 5
+    PUSH 1
+    LOAD
+    STORE
+    PUSH 4
+    LOAD
+    OUT
+    CPUSH ' '
+    OUT
+    PUSH 5
+    LOAD
+    OUT_LN
+    HALT

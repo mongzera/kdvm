@@ -8,30 +8,31 @@
 
 #define VM_PROGRAM_MEM      1024
 #define VM_STACK_SIZE       256
-#define VM_RAM_SIZE         1024
+#define VM_RAM_SIZE         1024 * 4
+#define THREAD_STACK_SIZE   512
 
 #define GLOBAL_RAM_SIZE     VM_RAM_SIZE / 4
-#define HEAP_RAM_SIZE       (VM_RAM_SIZE - GLOBAL_RAM_SIZE) / 2
-#define STACK_RAM_SIZE      (VM_RAM_SIZE - GLOBAL_RAM_SIZE) / 2
+#define HEAP_RAM_SIZE       VM_RAM_SIZE - GLOBAL_RAM_SIZE
 
 #define GLOBAL_RAM_START    0
 #define HEAP_RAM_START      GLOBAL_RAM_SIZE
-#define STACK_RAM_START     GLOBAL_RAM_SIZE + HEAP_RAM_SIZE
-
-
 
 #define CALL_STACK_MEM 64
 #define MAX_HANDLES 64
+#define MAX_THREADS 32
 
 // Stack operations
-#define VM_POP(vm) vm->stack[vm->sp--]
-#define VM_PUSH(vm, val) vm->stack[++vm->sp] = val
-#define VM_PEEK(vm) vm->stack[vm->sp]
+#define VM_THREAD_POP(vm_thread) vm_thread->stack[vm_thread->sp--]
+#define VM_THREAD_PUSH(vm_thread, val) vm_thread->stack[++vm_thread->sp] = val
+#define VM_THREAD_PEEK(vm_thread) vm_thread->stack[vm_thread->sp]
 
 // Stack frame operations
-#define VM_SF_PUSH(vm, stack_frame) vm->stack_frame[++vm->sfp] = stack_frame
-#define VM_SF_POP(vm) vm->stack_frame[vm->sfp--]
-#define VM_SF_PEEK(vm) &vm->stack_frame[vm->sfp]
+#define VM_THREAD_SF_PUSH(vm_thread, stack_frame) vm_thread->stack_frame[++vm_thread->sfp] = stack_frame
+#define VM_THREAD_SF_POP(vm_thread) vm_thread->stack_frame[vm_thread->sfp--]
+#define VM_THREAD_SF_PEEK(vm_thread) &vm_thread->stack_frame[vm_thread->sfp]
+
+#define VM_GET_INSTRUCTION(vm, pc) vm->program[pc++] // auto increment to next instruction
+#define VM_SET_CHECKPOINT(thread) thread->pc_checkpoint = thread->pc // auto increment to next instruction
 
 
 typedef struct{
@@ -39,16 +40,27 @@ typedef struct{
     uint32_t local_variable_count;
 } LocalStackFrame;
 
+typedef enum {
+    WORD_AVAILABLE = 0x0,   // WORD can be claimed by HEAP or STACK for all Data Types
+    WORD_OPEN,              // WORD can be modified by all threads, but this has an existing Data Type and was allocated.
+    WORD_CONSTANT,          // WORD can be read, not modified.
+    WORD_LOCKED,            // WORD is locked by a thread using it mid instruction.
+    WORD_MUTEX_LOCKED,      // WORD is locked by owner thread. Other threads cannot use this.
+    WORD_GARBAGE,           // WORD is declared as garbage, ready to be collected by garbage collector.
+} WordState;
+
 // Helper union for bit-casting
 typedef enum {
     TYPE_INT = 0x0,
-    TYPE_FLOAT = 0x1,
-    TYPE_CHAR = 0x2,
-    TYPE_BYTE = 0x3
+    TYPE_FLOAT,
+    TYPE_CHAR,
+    TYPE_BYTE,
+    TYPE_ADDRESS
 } PrimitiveType;
 
 typedef struct {
     PrimitiveType type;
+    uint8_t word_state;
     union {
         float f;
         int32_t u;
@@ -56,7 +68,6 @@ typedef struct {
         int8_t b;
     } data;
 } PrimitiveValue;
-
 
 typedef enum {
     EXEC_ERR = -1,
@@ -73,6 +84,14 @@ typedef enum{
     OPT_SYSCALL = 0x60
 
 } OPCODE_TYPE;
+
+typedef enum {
+    THREAD_FREE = 0x0,
+    THREAD_YIELD,
+    THREAD_ACTIVE,
+    THREAD_IO_BLOCKED
+
+} ThreadStatus;
 
 typedef enum {
     // Memory & Stack
@@ -128,9 +147,11 @@ typedef enum {
     OP_RET    = OPT_CONTROL | 0x0B,
 
     // I/O
-    OP_OUT    = OPT_IO | 0x00,
-    OP_FOUT   = OPT_IO | 0x01,
-    OP_IN     = OPT_IO | 0x02,
+    OP_OUT      = OPT_IO | 0x00,
+    OP_OUT_LN   = OPT_IO | 0x01,
+    OP_FOUT     = OPT_IO | 0x02,
+    OP_FOUT_LN  = OPT_IO | 0x03,
+    OP_IN       = OPT_IO | 0x04,
 
     OP_SYS_READ   = OPT_SYSCALL | 0x01,
     OP_SYS_WRITE  = OPT_SYSCALL | 0x02,
@@ -138,23 +159,31 @@ typedef enum {
 } OpCodes;
 
 // The encapsulated VM State
+struct VM;
+
+// VM Thread
 typedef struct {
-    uint32_t program[VM_PROGRAM_MEM];
-    PrimitiveValue stack[VM_STACK_SIZE];
-    PrimitiveValue ram[VM_RAM_SIZE];         // [0]-> RAM_MEM: GLOBAL [1/4], HEAP[1/2], STACK [1/2]
-    uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
-    VM_Handle handle[MAX_HANDLES];
-
-    LocalStackFrame stack_frame[STACK_RAM_SIZE];
-
     int64_t pc;    // Program Counter
+    int64_t pc_checkpoint;    // Program Counter checkpoint
     int64_t sp;    // Stack Pointer
     int64_t csp;   // Call Stack Pointer
     int64_t sfp;   // Stack Frame Pointer
+    struct VM* vm;      // initialize on init
+    PrimitiveValue stack[VM_STACK_SIZE];         // operation stack
+    PrimitiveValue ram_stack[THREAD_STACK_SIZE]; // ram stack
+    LocalStackFrame stack_frame[THREAD_STACK_SIZE];
+    uint32_t call_stack[CALL_STACK_MEM]; // stores the previous instruction number before the CALL, so we can make recursion possible.
+    uint8_t status;
 
+} VM_Thread;
+
+typedef struct VM{
     uint32_t _global_start;
-
     uint32_t program_size;
+    uint32_t program[VM_PROGRAM_MEM];
+    PrimitiveValue ram[VM_RAM_SIZE];         // [0]-> RAM_MEM: GLOBAL [1/4], HEAP[3/4]
+    VM_Handle handle[MAX_HANDLES];
+    VM_Thread *threads[MAX_THREADS];
 } VM;
 
 // Global Function Prototypes
@@ -163,5 +192,10 @@ int vm_execute(VM* vm);
 int load_kdm_file(const char* filename, VM* vm);
 void vm_error(const char* message);
 void vm_depr(const char* message);
+
+//Global Thread functions
+VM_Thread *vm_request_thread(VM* vm);
+VM_Thread *vm_get_thread(VM* vm, int thread_id);
+void vm_init_thread(VM* vm, VM_Thread *thread);
 
 #endif // KDVM_H

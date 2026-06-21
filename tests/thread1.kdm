@@ -1,0 +1,6 @@
+::_global
+    PUSH 5
+    PUSH 6
+    ADD
+    PEEK
+    HALT
