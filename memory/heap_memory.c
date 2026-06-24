@@ -1,6 +1,9 @@
 #include "memory.h"
 
-uint32_t get_level_index(uint32_t lvl){
+HeapBitMask heap_alloc_mask;
+HeapBitMask heap_split_mask;
+
+uint32_t get_index_level(uint32_t lvl){
     return (1 << lvl) - 1;
 }
 
@@ -17,7 +20,7 @@ uint32_t get_right_node(uint32_t idx){
     return (idx << 1) + 2;
 }
 
-uint32_t malloc_heap(VM* vm, uint32_t size){
+uint32_t malloc_heap(VM_Thread thread, uint32_t size){
     return 0;
 }
 
