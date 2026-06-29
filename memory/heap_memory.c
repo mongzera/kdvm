@@ -20,7 +20,7 @@ uint32_t get_right_node(uint32_t idx){
     return (idx << 1) + 2;
 }
 
-uint32_t malloc_heap(VM_Thread thread, uint32_t size){
+uint32_t malloc_heap(VM_Thread* thread, uint32_t size){
     return 0;
 }
 
