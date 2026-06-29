@@ -170,6 +170,39 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             break;
         }
 
+
+        //CREATE TEST FOR THIS
+        // for H_ALLOC
+        case OP_HALLOC: {
+            int8_t size = VM_GET_INSTRUCTION(vm, thread->pc);
+
+            uint32_t ptr_val = malloc_heap(thread, size);
+
+            PrimitiveValue value = {
+                .type = TYPE_ADDRESS,
+                .word_state = WORD_OPEN,
+                .data = ptr_val
+            };
+
+            VM_THREAD_PUSH(thread, value);
+
+            break;
+        }
+
+        // for H_FREE
+        case OP_HFREE: {
+            // 1. Pop the pointer from the evaluation stack
+            PrimitiveValue val = VM_THREAD_POP(thread);
+
+            if (val.type == TYPE_ADDRESS) {
+
+                free_heap(vm, val.data.u);
+            }
+
+            break;
+        }
+
+
         // Local Integer Store
         case OP_STORE_L: {
             PrimitiveValue value = VM_THREAD_POP(thread);

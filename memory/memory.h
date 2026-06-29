@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #define mem_is_out_of_bounds(addr, start, size) ((addr) < (start) || (addr) >= ((start) + (size)))
-#define HEAP_BITMASK_LENGTH LOG2_32(HEAP_RAM_SIZE)
+#define HEAP_BITMASK_LENGTH ((2 * HEAP_RAM_SIZE + 31) / 32)
 
 typedef struct {
     uint32_t bitmask[HEAP_BITMASK_LENGTH];
