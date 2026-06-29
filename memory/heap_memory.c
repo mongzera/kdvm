@@ -21,6 +21,15 @@ uint32_t get_right_node(uint32_t idx){
 }
 
 uint32_t malloc_heap(VM_Thread* thread, uint32_t size){
+    uint32_t remaining_size = size;
+
+    uint32_t block_size = HEAP_RAM_SIZE;
+
+    while(remaining_size > 0){
+        // TODO: Implement
+    }
+
+
     return 0;
 }
 

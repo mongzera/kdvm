@@ -1,5 +1,5 @@
-#ifndef KDVM_H
-#define KDVM_H
+#ifndef GRRVM_H
+#define GRRVM_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -198,4 +198,4 @@ VM_Thread *vm_request_thread(VM* vm);
 VM_Thread *vm_get_thread(VM* vm, int thread_id);
 void vm_init_thread(VM* vm, VM_Thread *thread);
 
-#endif // KDVM_H
+#endif // GRRVM_H

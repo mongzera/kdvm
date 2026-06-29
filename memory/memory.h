@@ -1,7 +1,7 @@
 #ifndef H_MEMORY
 #define H_MEMORY
 #include "../math/math.h"
-#include "../core/kdvm.h"
+#include "../core/grrvm.h"
 #include "clz_fallback.h"
 #include <stdlib.h>
 

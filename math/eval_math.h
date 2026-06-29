@@ -1,7 +1,7 @@
 #ifndef H_EVAL_MATH
 #define H_EVAL_MATH
 
-#include "../core/kdvm.h"
+#include "../core/grrvm.h"
 #include <stdint.h>
 #include <stdio.h>
 

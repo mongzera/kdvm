@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "core/kdvm.h"
+#include "core/grrvm.h"
 #include "assembler/assember.h"
 #include <stdlib.h>
 #include <time.h>

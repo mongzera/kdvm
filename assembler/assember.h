@@ -1,7 +1,7 @@
 #ifndef H_ASSEMBLER
 #define H_ASSEMBLER
 
-#include "../core/kdvm.h"
+#include "../core/grrvm.h"
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
