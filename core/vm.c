@@ -47,6 +47,8 @@ int vm_execute(VM* vm) {
 
             // set check point here
 
+            // checkpoints are saved instructions so that when an OP_CODE fails or cannot proceed,
+            // we return to the last instruction to try again in the next cycle
             VM_SET_CHECKPOINT(thread);
 
             uint32_t opcode = VM_GET_INSTRUCTION(vm, thread->pc);
