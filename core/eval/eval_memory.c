@@ -171,7 +171,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
         }
 
 
-        //CREATE TEST FOR THIS
+        // CREATE TEST FOR THIS
         // for H_ALLOC
         case OP_HALLOC: {
             int8_t size = VM_GET_INSTRUCTION(vm, thread->pc);

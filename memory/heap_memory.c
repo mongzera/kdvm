@@ -1,13 +1,16 @@
 #include "memory.h"
 
-HeapBitMask heap_alloc_mask; // 1 = fully allocated
-HeapBitMask heap_split_mask; // 1 = split into two smaller buddies
+// We use the first slot of every allocation as a "metadata header".
+// No struct needed, just utilizing the PrimitiveValue's fields.
+#define HEADER_SLOTS 1
 
-// Clamps HEAP_RAM_SIZE down to the nearest power of 2 (e.g. 3072 -> 2048)
+HeapBitMask heap_alloc_mask;
+HeapBitMask heap_split_mask;
+
+// BUDDY_ARENA_SIZE now represents the total number of PrimitiveValue slots available
 #define BUDDY_ARENA_SIZE (1U << (31 - __builtin_clz(HEAP_RAM_SIZE)))
 
-/* --- Bitset Helpers --- */
-
+/* --- Bitset Helpers (Unchanged) --- */
 static inline bool bit_test(const HeapBitMask* m, uint32_t bit) {
     return (m->bitmask[bit >> 5] & (1U << (bit & 31))) != 0;
 }
@@ -25,35 +28,20 @@ static inline uint32_t next_pow2(uint32_t v) {
     return 1U << (32 - __builtin_clz(v - 1));
 }
 
-/* --- Tree Navigation --- */
-
-uint32_t get_index_level(uint32_t lvl) {
-    return (1 << lvl) - 1;
-}
-
-uint32_t get_level_from_index(uint32_t idx) {
-    return 31 - __builtin_clz(idx + 1);
-}
-
-uint32_t get_left_node(uint32_t idx) {
-    return (idx << 1) + 1;
-}
-
-uint32_t get_right_node(uint32_t idx) {
-    return (idx << 1) + 2;
-}
+/* --- Tree Navigation (Unchanged) --- */
+uint32_t get_index_level(uint32_t lvl) { return (1 << lvl) - 1; }
+uint32_t get_left_node(uint32_t idx)   { return (idx << 1) + 1; }
+uint32_t get_right_node(uint32_t idx)  { return (idx << 1) + 2; }
 
 /* --- Internal Allocator Logic --- */
-
 static uint32_t buddy_find_free(uint32_t idx, uint32_t curr_lvl, uint32_t target_lvl) {
-    if (bit_test(&heap_alloc_mask, idx)) return (uint32_t)-1; // Branch fully occupied
+    if (bit_test(&heap_alloc_mask, idx)) return (uint32_t)-1;
 
     if (curr_lvl == target_lvl) {
-        if (bit_test(&heap_split_mask, idx)) return (uint32_t)-1; // Broken into smaller parts
-        return idx; // Claimed!
+        if (bit_test(&heap_split_mask, idx)) return (uint32_t)-1;
+        return idx;
     }
 
-    // We are above the target level. Mark this node as split and descend.
     bit_set(&heap_split_mask, idx);
 
     uint32_t left = get_left_node(idx);
@@ -66,29 +54,32 @@ static uint32_t buddy_find_free(uint32_t idx, uint32_t curr_lvl, uint32_t target
 
 static void buddy_mark_allocated(uint32_t idx) {
     bit_set(&heap_alloc_mask, idx);
-
-    // Propagate 'fully allocated' state upward to parents
     while (idx > 0) {
         uint32_t sibling = ((idx - 1) ^ 1) + 1;
         uint32_t parent  = (idx - 1) >> 1;
-
         if (bit_test(&heap_alloc_mask, sibling)) {
             bit_set(&heap_alloc_mask, parent);
             idx = parent;
-        } else {
-            break;
-        }
+        } else { break; }
     }
 }
 
 /* --- Public API --- */
 
-uint32_t malloc_heap(VM_Thread* thread, uint32_t size) {
-    if (size == 0 || size > BUDDY_ARENA_SIZE) return (uint32_t)-1;
+/**
+ * Allocates 'num_slots' in the shared heap.
+ * Ownership: The allocation is associated with the calling thread's VM context.
+ */
+uint32_t malloc_heap(VM_Thread* thread, uint32_t num_slots) {
+    VM* vm = thread->vm; // Access global VM via the thread context
 
-    uint32_t needed_pow2 = next_pow2(size);
+    // 1. Reserve 1 slot for header (Level/Metadata)
+    uint32_t total_slots = num_slots + HEADER_SLOTS;
+    if (total_slots == 0 || total_slots > BUDDY_ARENA_SIZE) return (uint32_t)-1;
 
-    // Derive target tree depth (Root level 0 = BUDDY_ARENA_SIZE)
+    uint32_t needed_pow2 = next_pow2(total_slots);
+
+    // 2. Derive target tree depth
     uint32_t target_level = 0;
     uint32_t capacity = BUDDY_ARENA_SIZE;
     while (capacity > needed_pow2) {
@@ -96,69 +87,81 @@ uint32_t malloc_heap(VM_Thread* thread, uint32_t size) {
         target_level++;
     }
 
+    // 3. Search for free block in shared masks
     uint32_t node_idx = buddy_find_free(0, 0, target_level);
-    if (node_idx == (uint32_t)-1) return (uint32_t)-1; // Out of Memory / Fragmented
+    if (node_idx == (uint32_t)-1) return (uint32_t)-1;
 
     buddy_mark_allocated(node_idx);
 
-    // Translate node index to absolute VM->ram address
+    // 4. Calculate starting array index (PrimitiveValue slot index)
     uint32_t lvl_start_idx = get_index_level(target_level);
     uint32_t offset_in_lvl = node_idx - lvl_start_idx;
-    uint32_t words_per_block = BUDDY_ARENA_SIZE >> target_level;
+    uint32_t slots_per_block = BUDDY_ARENA_SIZE >> target_level;
+    uint32_t start_slot = HEAP_RAM_START + (offset_in_lvl * slots_per_block);
 
-    return HEAP_RAM_START + (offset_in_lvl * words_per_block);
+    // 5. Initialize the Header
+    // We treat the first slot as metadata.
+    vm->ram[start_slot].type = TYPE_INT;
+    vm->ram[start_slot].data.u = (int32_t)target_level;
+    vm->ram[start_slot].word_state = WORD_CONSTANT; // Read-only for safety
+
+    // 6. Return the index of the DATA slot (the VM handles the abstraction)
+    return start_slot + 1;
 }
 
-void free_heap(VM* vm, uint32_t addr) {
-    if (addr < HEAP_RAM_START || addr >= HEAP_RAM_START + BUDDY_ARENA_SIZE) {
+/**
+ * Frees memory.
+ * Ownership: Thread provides context, but the heap is global.
+ */
+void free_heap(VM* vm, uint32_t data_slot) {
+    uint32_t header_slot = data_slot - 1;
+
+    // Boundary check
+    if (header_slot < HEAP_RAM_START || header_slot >= HEAP_RAM_START + BUDDY_ARENA_SIZE) {
         vm_error("HeapFree: Pointer out of bounds!");
         return;
     }
 
-    uint32_t rel_addr = addr - HEAP_RAM_START;
+    // 1. Recover Metadata
+    int32_t target_level = vm->ram[header_slot].data.u;
 
-    // 1. Walk down the tree to locate the exact node allocated for this pointer
-    uint32_t idx = 0;
-    uint32_t span = BUDDY_ARENA_SIZE;
-
-    while (1) {
-        if (bit_test(&heap_alloc_mask, idx)) break; // Found the exact allocated node!
-
-        if (!bit_test(&heap_split_mask, idx)) {
-            vm_error("HeapFree: Double free or invalid pointer!");
-            return;
-        }
-
-        span >>= 1;
-        idx = ((rel_addr & span) == 0) ? get_left_node(idx) : get_right_node(idx);
+    // Safety check: Prevents using corrupted metadata to wreak havoc on bitmasks
+    if (target_level < 0 || target_level > 31) {
+        vm_error("HeapFree: Metadata corruption or invalid target level!");
+        return;
     }
 
-    // 2. Clear allocation bit & un-propagate parent allocations
+    // 2. Mathematical index recovery
+    uint32_t rel_addr = header_slot - HEAP_RAM_START;
+    uint32_t slots_per_block = BUDDY_ARENA_SIZE >> target_level;
+    uint32_t offset_in_lvl = rel_addr / slots_per_block;
+    uint32_t idx = get_index_level(target_level) + offset_in_lvl;
+
+    // 3. Clear bitmask (De-allocate)
     bit_clear(&heap_alloc_mask, idx);
+
+    // 4. Upward propagation (Clear parents if siblings are free)
     uint32_t curr = idx;
     while (curr > 0) {
         uint32_t parent = (curr - 1) >> 1;
         if (bit_test(&heap_alloc_mask, parent)) {
             bit_clear(&heap_alloc_mask, parent);
             curr = parent;
-        } else {
-            break;
-        }
+        } else { break; }
     }
 
-    // 3. Coalesce free buddies back up toward the root
+    // 5. Coalesce buddies
     while (idx > 0) {
         uint32_t sibling = ((idx - 1) ^ 1) + 1;
         uint32_t parent  = (idx - 1) >> 1;
 
+        // Check if buddy is truly free
         bool sib_is_pure_free = !bit_test(&heap_alloc_mask, sibling) &&
                                 !bit_test(&heap_split_mask, sibling);
 
         if (sib_is_pure_free) {
-            bit_clear(&heap_split_mask, parent); // Undo the split
+            bit_clear(&heap_split_mask, parent);
             idx = parent;
-        } else {
-            break;
-        }
+        } else { break; }
     }
 }
