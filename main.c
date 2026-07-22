@@ -109,11 +109,11 @@ void command_compile_vm(int argc, char* argv[]) {
 
     // 2. Build absolute path to assembler/assembler.py relative to binary location
     char assembler_path[1024];
-    snprintf(assembler_path, sizeof(assembler_path), "%s/assembler/assembler.py", exe_dir);
+    snprintf(assembler_path, sizeof(assembler_path), "%s/assembler/Assembler.java", exe_dir);
 
     // 3. Construct full shell command
     char command[2048];
-    snprintf(command, sizeof(command), "python3 \"%s\" \"%s\" \"%s\"", assembler_path, input_file, output_file);
+    snprintf(command, sizeof(command), "java \"%s\" \"%s\" \"%s\"", assembler_path, input_file, output_file);
 
     printf("[COMPILING] Running: %s\n", command);
 
