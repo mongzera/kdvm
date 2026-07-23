@@ -78,8 +78,8 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             PrimitiveValue val = VM_THREAD_POP(thread);
             PrimitiveValue addr = VM_THREAD_POP(thread);
 
-            if(addr.type != TYPE_INT){
-                vm_error("Address should have a type INTEGER!");
+            if(addr.type != TYPE_INT && addr.type != TYPE_ADDRESS){
+                vm_error("Address should have a type INTEGER or ADDRESS!");
                 exit(1);
             }
 
@@ -90,12 +90,42 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
         case OP_LOAD: {
             PrimitiveValue addr = VM_THREAD_POP(thread);
 
-            if(addr.type != TYPE_INT){
-                vm_error("Address should have a type INTEGER!");
+            if(addr.type != TYPE_INT && addr.type != TYPE_ADDRESS){
+                vm_error("Address should have a type INTEGER or ADDRESS!");
                 exit(1);
             }
 
             VM_THREAD_PUSH(thread, load_global(vm, addr.data.u));
+            break;
+        }
+
+        case OP_LOAD_OFF: {
+            PrimitiveValue offset = VM_THREAD_POP(thread);
+            PrimitiveValue addr = VM_THREAD_POP(thread);
+
+            if(addr.type != TYPE_INT && addr.type != TYPE_ADDRESS){
+                vm_error("Address should have a type INTEGER or ADDRESS!");
+                exit(1);
+            }
+
+            if(offset.type != TYPE_INT){
+                vm_error("Address offset should have a type INTEGER!");
+                exit(1);
+            }
+
+            PrimitiveValue size = load_global(vm, addr.data.u);
+
+            if(offset.data.u < 0){
+                vm_error("Segmentation Fault: Memory LowerBound Access!");
+                exit(1);
+            }
+
+            if(offset.data.u >= size.data.u - 1){ // this excludes the HEADER in counting the total size for arrays which originally counts the HEADER
+                vm_error("Segmentation Fault: Memory UpperBound Access!");
+                exit(1);
+            }
+
+            VM_THREAD_PUSH(thread, load_global(vm, addr.data.u + offset.data.u + 1));
             break;
         }
 

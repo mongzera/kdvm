@@ -3,6 +3,7 @@
 #include "../math/math.h"
 #include "../core/grrvm.h"
 #include "clz_fallback.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 #define mem_is_out_of_bounds(addr, start, size) ((addr) < (start) || (addr) >= ((start) + (size)))
@@ -18,7 +19,15 @@ static inline uint32_t store_global(VM* vm, uint32_t address, PrimitiveValue val
         vm_error("SegFault: Global store out of bounds!");
         exit(-1);
     }
-    vm->ram[address] = value;
+
+    // check first if a memslot is accessible
+    if(vm->ram[address].word_state == WORD_OPEN || vm->ram[address].word_state == WORD_AVAILABLE) vm->ram[address] = value;
+    else{
+        printf("[SEGMENTATION FAULT] Cannot store to this address [ADDR = 0x%X], Reason: WordState = %d\n", address, vm->ram[address].word_state);
+        exit(-1);
+    }
+
+
     return 0;
 }
 

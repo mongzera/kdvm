@@ -1,20 +1,15 @@
-# Memory Check Entry Point
+::_data
+    byte x "hello"
+
 ::_global
-    # 1. Test STORE: Store 99 at RAM[5]
-    PUSH 5          # Address
-    PUSH 99         # Value
-    STORE
-
-    # 2. Test LOAD: Load from RAM[5]
-    PUSH 5          # Address
-    LOAD            # Should push 99 onto the stack
-
-    # 3. Print the result
-    OUT             # If this prints 99, your memory system works!
-
-
-    FSTORE 67.7 6
-    PUSH 6
+    PUSH $x
     LOAD
-    OUT             # If this prints 67, it works!
+    PUSH 1
+    ADD
+    DUP
+    OUT_LN
+    PUSH $x
+    SWAP
+    STORE
+    JUMP 0
     HALT

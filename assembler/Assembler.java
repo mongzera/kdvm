@@ -36,7 +36,8 @@ public class Assembler {
         public static final int MOD = 0x14, INC = 0x15, DEC = 0x16;
 
         // Memory (RAM)
-        public static final int STORE = 0x20, LOAD = 0x21, MSET = 0x22, ISTORE = 0x23;
+        public static final int OPT_MEM = 0x20;
+        public static final int STORE = 0x20, LOAD = 0x21, LOAD_OFF = OPT_MEM | 0x02, MSET = 0x22, ISTORE = 0x23;
         public static final int FSTORE = 0x24, CSTORE = 0x25, BSTORE = 0x26, HALLOC = 0x27;
         public static final int HFREE = 0x28, ISTORE_L = 0x2A, FSTORE_L = 0x2B;
         public static final int CSTORE_L = 0x2C, BSTORE_L = 0x2D, LOAD_L = 0x2E, STORE_L = 0x2F;
@@ -152,7 +153,7 @@ public class Assembler {
         token = token.trim();
         if (token.startsWith("'") && token.endsWith("'")) {
             String content = token.substring(1, token.length() - 1);
-            if (content.isEmpty()) return 0; // Handled CPUSH '' as 0 (\0)
+            if (content.isEmpty()) return 0;
             if (content.startsWith("\\")) {
                 switch (content) {
                     case "\\n": return '\n';
@@ -293,6 +294,32 @@ public class Assembler {
         }
     }
 
+    private static void allocateRamElements(AssemblerEngine asm, String datatype, int wordState, DataElement elem, String symbol, String sourceLine, String notePrefix) {
+        if ("byte".equals(datatype)) {
+            if ("string".equals(elem.type)) {
+                boolean firstChar = true;
+                for (char ch : ((String) elem.value).toCharArray()) {
+                    String sym = firstChar ? symbol : null;
+                    String src = firstChar ? sourceLine : null;
+                    asm.allocateRamWord(sym, PrimitiveType.TYPE_BYTE, wordState, ch, src, notePrefix + "[elem: '" + ch + "' (" + (int) ch + ")]");
+                    firstChar = false;
+                }
+            } else {
+                asm.allocateRamWord(symbol, PrimitiveType.TYPE_BYTE, wordState, (Integer) elem.value, sourceLine, notePrefix + "[elem: " + elem.value + "]");
+            }
+        } else if ("half".equals(datatype)) {
+            asm.allocateRamWord(symbol, PrimitiveType.TYPE_INT, wordState, ((Integer) elem.value) & 0xFFFF, sourceLine, notePrefix + "[elem: " + elem.value + "]");
+        } else if ("word".equals(datatype)) {
+            if ("float".equals(elem.type)) {
+                asm.allocateRamWord(symbol, PrimitiveType.TYPE_FLOAT, wordState, Float.floatToIntBits((Float) elem.value), sourceLine, notePrefix + "[elem: " + elem.value + "]");
+            } else if ("char".equals(elem.type)) {
+                asm.allocateRamWord(symbol, PrimitiveType.TYPE_CHAR, wordState, (Integer) elem.value, sourceLine, notePrefix + "[elem: '" + (char) ((Integer) elem.value).intValue() + "']");
+            } else {
+                asm.allocateRamWord(symbol, PrimitiveType.TYPE_INT, wordState, (Integer) elem.value, sourceLine, notePrefix + "[elem: " + elem.value + "]");
+            }
+        }
+    }
+
     // ── Dump Writer ─────────────────────────────────────────────────────────
 
     private static void writeDumpFile(AssemblerEngine asm, String dumpFilename) throws IOException {
@@ -301,7 +328,7 @@ public class Assembler {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(dumpFilename, StandardCharsets.UTF_8))) {
             writer.println("=".repeat(105));
-            writer.println(" KDM ASSEMBLER DUMP & SOURCE LISTING (JAVA)");
+            writer.println(" GRR ASSEMBLER DUMP & SOURCE LISTING (JAVA)");
             writer.println("=".repeat(105));
             writer.printf(" Header Metadata:\n");
             writer.printf("   _global_start  : Addr [0x%04X] | 0x%08X | %s\n", asm.globalStart, asm.globalStart, formatBin32(asm.globalStart));
@@ -310,7 +337,7 @@ public class Assembler {
             writer.println("=".repeat(105) + "\n");
 
             writer.println("── STATIC MEMORY (RAM Data: ::_data / ::_const_data) ".stripTrailing() + "─".repeat(50));
-            writer.println("Addr   Hex (Type/St/Pad/Data)  Data Binary (32-bit)                  ASCII   Type  State  Source / Element Note");
+            writer.println("Addr   Hex (Type/St/Pad/Data)  Data Binary (32-bit)                 ASCII   Type  State  Source / Element Note");
             writer.println("─".repeat(105));
 
             for (RamListingItem item : asm.ramListing) {
@@ -342,12 +369,11 @@ public class Assembler {
 
     // ── Main Compilation Pipeline ───────────────────────────────────────────
 
-    public static int compileKdmToBin(String inFilename, String outFilename) {
+    public static int compileGrrToBin(String inFilename, String outFilename) {
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(inFilename, StandardCharsets.UTF_8))) {
             String l;
             while ((l = br.readLine()) != null) {
-                // Replaced non-breaking space \u00a0 with standard space
                 lines.add(l.replace('\u00a0', ' '));
             }
         } catch (IOException e) {
@@ -388,37 +414,39 @@ public class Assembler {
                 if (parts.size() < 2) continue;
 
                 String datatype = parts.get(0);
-                String symbolName = parts.get(1);
-                String rawValues = clean.contains(symbolName) ? clean.substring(clean.indexOf(symbolName) + symbolName.length()).trim() : "";
+                String symbolName = parts.get(1).replaceAll(",$", "");
+                int symIdx = clean.indexOf(parts.get(1));
+                String rawValues = (symIdx != -1) ? clean.substring(symIdx + parts.get(1).length()).trim() : "";
 
                 int wordState = "_const_data".equals(currentSection) ? WordState.WORD_CONSTANT : WordState.WORD_OPEN;
                 List<DataElement> elements = parseDataElements(rawValues);
 
-                int payloadCount = 0;
-                for (DataElement elem : elements) {
-                    payloadCount += "string".equals(elem.type) ? ((String) elem.value).length() : 1;
-                }
-                int totalArraySize = payloadCount + 1;
+                // Treats as array if line contains comma, multiple items, OR string literal
+                boolean isArray = clean.contains(",")
+                                || elements.size() > 1
+                                || elements.stream().anyMatch(e -> "string".equals(e.type));
 
-                asm.allocateRamWord(symbolName, PrimitiveType.TYPE_INT, wordState, totalArraySize, clean, "Array length (" + totalArraySize + ")");
+                if (isArray) {
+                    // Array Data: Includes Header Length
+                    int payloadCount = 0;
+                    for (DataElement elem : elements) {
+                        payloadCount += "string".equals(elem.type) ? ((String) elem.value).length() : 1;
+                    }
+                    int totalArraySize = payloadCount + 1;
 
-                for (DataElement elem : elements) {
-                    if ("byte".equals(datatype)) {
-                        if ("string".equals(elem.type)) {
-                            for (char ch : ((String) elem.value).toCharArray()) {
-                                asm.allocateRamWord(null, PrimitiveType.TYPE_BYTE, wordState, ch, null, "↳ [elem: '" + ch + "' (" + (int) ch + ")]");
-                            }
-                        } else {
-                            asm.allocateRamWord(null, PrimitiveType.TYPE_BYTE, wordState, (Integer) elem.value, null, "↳ [elem: " + elem.value + "]");
-                        }
-                    } else if ("half".equals(datatype)) {
-                        asm.allocateRamWord(null, PrimitiveType.TYPE_INT, wordState, ((Integer) elem.value) & 0xFFFF, null, "↳ [elem: " + elem.value + "]");
-                    } else if ("word".equals(datatype)) {
-                        if ("float".equals(elem.type)) {
-                            asm.allocateRamWord(null, PrimitiveType.TYPE_FLOAT, wordState, Float.floatToIntBits((Float) elem.value), null, "↳ [elem: " + elem.value + "]");
-                        } else {
-                            asm.allocateRamWord(null, PrimitiveType.TYPE_INT, wordState, (Integer) elem.value, null, "↳ [elem: " + elem.value + "]");
-                        }
+                    asm.allocateRamWord(symbolName, PrimitiveType.TYPE_INT, wordState, totalArraySize, clean, "Array length (" + totalArraySize + ")");
+
+                    for (DataElement elem : elements) {
+                        allocateRamElements(asm, datatype, wordState, elem, null, null, "↳ ");
+                    }
+                } else {
+                    // Single Primitive Data (e.g. word $x 42): NO Header
+                    boolean isFirst = true;
+                    for (DataElement elem : elements) {
+                        String sym = isFirst ? symbolName : null;
+                        String lineRef = isFirst ? clean : null;
+                        allocateRamElements(asm, datatype, wordState, elem, sym, lineRef, "");
+                        isFirst = false;
                     }
                 }
             } else if ("code".equals(currentSection)) {
@@ -448,7 +476,8 @@ public class Assembler {
             Map.entry("CMPLT", Opcode.CMPLT), Map.entry("CMPLE", Opcode.CMPLE), Map.entry("CMPGT", Opcode.CMPGT),
             Map.entry("CMPGE", Opcode.CMPGE), Map.entry("OUT_LN", Opcode.OUT_LN), Map.entry("FOUT", Opcode.FOUT),
             Map.entry("FOUT_LN", Opcode.FOUT_LN), Map.entry("SYS_READ", Opcode.SYS_READ),
-            Map.entry("SYS_WRITE", Opcode.SYS_WRITE), Map.entry("RET", Opcode.RET)
+            Map.entry("SYS_WRITE", Opcode.SYS_WRITE), Map.entry("RET", Opcode.RET),
+            Map.entry("LOAD_OFF", Opcode.LOAD_OFF), Map.entry("OP_LOAD_OFF", Opcode.LOAD_OFF)
         );
 
         for (int lineNum = 1; lineNum <= lines.size(); lineNum++) {
@@ -569,20 +598,18 @@ public class Assembler {
     }
 
     private static int resolveVal(AssemblerEngine asm, String token) {
-        String cleanTok = token.replaceAll("^:+", "");
         if (asm.symbolTable.containsKey(token)) return asm.symbolTable.get(token);
+        String cleanTok = token.replaceAll("^[:$]+", "");
         if (asm.symbolTable.containsKey(cleanTok)) return asm.symbolTable.get(cleanTok);
+        if (asm.symbolTable.containsKey("$" + cleanTok)) return asm.symbolTable.get("$" + cleanTok);
         return parseCharOrInt(token);
     }
 
-    /**
-     * Resolves jump/branch targets. Named labels yield absolute addresses,
-     * while raw numbers add currentSubroutine.programLine (relative word offsets).
-     */
     private static int resolveJumpTarget(AssemblerEngine asm, String token, SubroutineCtx currentSubroutine) {
         if (asm.symbolTable.containsKey(token)) return asm.symbolTable.get(token);
-        String cleanTok = token.replaceAll("^:+", "");
+        String cleanTok = token.replaceAll("^[:$]+", "");
         if (asm.symbolTable.containsKey(cleanTok)) return asm.symbolTable.get(cleanTok);
+        if (asm.symbolTable.containsKey("$" + cleanTok)) return asm.symbolTable.get("$" + cleanTok);
 
         int relativeOffset = parseCharOrInt(token);
         if (currentSubroutine != null) {
@@ -600,7 +627,7 @@ public class Assembler {
             System.out.println("Usage: java Assembler.java <input.grr> <output.grro>");
             System.exit(1);
         }
-        int status = compileKdmToBin(args[0], args[1]);
+        int status = compileGrrToBin(args[0], args[1]);
         System.exit(status == 0 ? 0 : 1);
     }
 }

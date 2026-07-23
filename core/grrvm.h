@@ -119,7 +119,7 @@ typedef enum {
     // Memory (RAM)
     OP_STORE    = OPT_MEM | 0x00,
     OP_LOAD     = OPT_MEM | 0x01,
-    OP_MSET     = OPT_MEM | 0x02, // Memory set
+    OP_LOAD_OFF = OPT_MEM | 0x02,
 
     OP_ISTORE   = OPT_MEM | 0x03,
     OP_FSTORE   = OPT_MEM | 0x04,
