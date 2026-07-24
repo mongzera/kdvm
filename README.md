@@ -62,18 +62,30 @@ Write your assembly instructions in a `.grr` text file, then pass it to the VM (
 * `SWAP` - Swaps the top two values in the stack.
 * `ROT` - Rotates the top three values in the stack (floats the third value to the top, sinking the first two).
 
-### Data Types
+## Data Types & Memory
 
-* `PUSH <val>` - Pushes an integer onto the stack (bit-casted).
-* `FPUSH <val>` - Pushes a float onto the stack (bit-casted).
-* `BPUSH <val>` - Pushes a byte onto the stack (bit-casted).
-* `CPUSH <val>` - Pushes a char onto the stack (bit-casted).
+### Primitive Data Types
+|DATA TYPE | SIZE (bit length)|
+| --- | --- |
+|`BYTE`|8|
+|`CHAR`|16|
+|`INT`|32|
+|`FLOAT`|32|
+
+### Push Data to Local Stack
+| INSTRUCTION | DESCRITION | USAGE |
+|---|---|---|
+|`PUSH`|Pushes an integer onto the stack (bit-casted). |`PUSH <val>` |
+|`FPUSH`| Pushes a float onto the stack (bit-casted). |`FPUSH <val>`|
+|`BPUSH`| Pushes a byte onto the stack (bit-casted). |`BPUSH <val>`|
+|`CPUSH`| Pushes a char onto the stack (bit-casted). |`CPUSH <val>`|
 
 ### Arithmetic & Type Promotion
 
 GRRVM features dynamic **Implicit Type Promotion**. When performing math operations on mixed data types, the VM automatically "levels up" the narrower type to match the wider type to prevent precision loss.
 
 > **Promotion Hierarchy:** `BYTE` → `CHAR` → `INT` → `FLOAT`
+
 
 * `ADD` / `SUB` / `MUL` / `DIV` - Pops the top two values, determines their highest common type, performs the math, and pushes the correctly typed result back onto the stack.
 *(Example: If you `ADD` an `INT` and a `FLOAT`, the VM dynamically casts the integer to a float, performs floating-point addition, and pushes a `FLOAT` result.)*
@@ -98,6 +110,10 @@ GRRVM features dynamic **Implicit Type Promotion**. When performing math operati
 * `BSTORE_L <byte-value> $<var_name>` - Stores a local byte value to a named variable.
 * `LOAD_L $<var_name>` - Resolves local variable offset -> Pushes the value at `RAM[sfp + offset]` to the stack.
 
+**Heap Allocation**
+* `H_ALLOC` - Pops 1 value off the stack [size], then it pushes the address of that allocated memory.
+* `H_FREE`  - Pops 1 value off the stack [address], this frees the previously allocated memory to the VM to be allocated in the future.
+
 ### Control Flow
 
 * `JUMP <addr>` - Unconditionally jump `PC` to target address relative to the subroutine.
@@ -119,9 +135,31 @@ GRRVM features dynamic **Implicit Type Promotion**. When performing math operati
 * `IN <type>` - Pauses execution, waits for user input, and pushes it to the stack.
 * *Types:* `[ INT = 0, FLOAT = 1, CHAR = 2, BYTE = 3 ]`
 
+### Special Subroutines [IMPORTANT]
+* `::_global` - This is a reserved subroutine name so the VM knows where to begin execution. All user-defined subroutines must be defined before this line since the parser is single-pass.
+* `::_const_data` - This is a reserved subroutine where you can declare static constant variables or arrays. Defined before `::_global`.
+* `::_data` - This is a reserved subroutine where you can declare static mutable variables or arrays. Defined before `::_global`.
 
+**How to use**
 
-> **Note:** The program must start with a main subroutine named `::_global`. This is a reserved subroutine name so the VM knows where to begin execution.
+```
+::_const_data         # this memory is immutable, will throw an error when modified during runtime
+  byte x 10           # size is 8-bit
+  half y 15           # size is 16-bit
+  word z 1000000000   # size is 32-bit
+  word heights 156, 153, 167, 170 # array of 32-bit values
+  byte msg "Hello World\0"  # string
+
+::_data         # this memory is mutable, data can be modified during runtime
+  byte x 10           # size is 8-bit
+  half y 15           # size is 16-bit
+  word z 1000000000   # size is 32-bit
+  word heights 156, 153, 167, 170 # array of 32-bit values
+  byte msg "Hello World\0"  # string
+
+::_global
+  # your program here
+```
 
 ---
 
