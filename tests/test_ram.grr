@@ -1,5 +1,5 @@
 ::_data
-    byte x "hello"
+    word x 0
 
 ::_global
     PUSH $x

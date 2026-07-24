@@ -10,7 +10,7 @@
 ── STATIC MEMORY (RAM Data: ::_data / ::_const_data)──────────────────────────────────────────────────
 Addr   Hex (Type/St/Pad/Data)  Data Binary (32-bit)                 ASCII   Type  State  Source / Element Note
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-[0000] 03 01 0000 00000000   00000000 00000000 00000000 00000000    '.'   BYTE  OPEN   byte x 0
+[0000] 00 01 0000 00000000   00000000 00000000 00000000 00000000    '.'   INT   OPEN   word x 0
 
 ── PROGRAM MEMORY (Code Section)──────────────────────────────────────────────────────────────────────
 Addr   Hex Word     32-Bit Binary Representation          ASCII / Source Code & Instruction Disassembly
