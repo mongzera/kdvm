@@ -1,7 +1,7 @@
 #ifndef H_EVAL_MEMORY
 #define H_EVAL_MEMORY
 
-#include "../kdvm.h"
+#include "../grrvm.h"
 #include "../../memory/memory.h"
 
 int stack_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode);

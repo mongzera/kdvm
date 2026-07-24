@@ -1,7 +1,7 @@
 #ifndef H_TYPES
 #define H_TYPES
 
-#include "../../core/kdvm.h"
+#include "../../core/grrvm.h"
 
 bool primitive_is_numeric(PrimitiveValue v);
 

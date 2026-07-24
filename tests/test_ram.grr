@@ -1,0 +1,15 @@
+::_data
+    word x 0
+
+::_global
+    PUSH $x
+    LOAD
+    PUSH 1
+    ADD
+    DUP
+    OUT_LN
+    PUSH $x
+    SWAP
+    STORE
+    JUMP 0
+    HALT

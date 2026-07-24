@@ -1,0 +1,18 @@
+::_data
+    byte ages 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43
+    word iter 0
+::_global
+    PUSH $ages
+    PUSH $iter
+    LOAD
+    LOAD_OFF
+    OUT_LN
+    PUSH $iter
+    LOAD
+    PUSH 1
+    ADD
+    PUSH $iter
+    SWAP
+    STORE
+    JUMP 0
+    HALT

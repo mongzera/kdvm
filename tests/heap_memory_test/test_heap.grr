@@ -1,0 +1,15 @@
+::_global
+    PUSH 5
+    H_ALLOC
+    STORE_L 0
+    LOAD_L 0
+    PUSH 69
+    STORE
+    LOAD_L 0
+    LOAD
+    OUT_LN #print address
+    LOAD_L 0
+    H_FREE
+    LOAD_L 0
+    OUT_LN
+    HALT
