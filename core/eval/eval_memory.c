@@ -99,6 +99,26 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
             break;
         }
 
+        case OP_STORE_OFF: {
+            PrimitiveValue value = VM_THREAD_POP(thread);
+            PrimitiveValue offset = VM_THREAD_POP(thread);
+            PrimitiveValue addr = VM_THREAD_POP(thread);
+
+            if(addr.type != TYPE_INT && addr.type != TYPE_ADDRESS){
+                vm_error("Address should have a type INTEGER or ADDRESS!");
+                exit(1);
+            }
+
+            if(offset.type != TYPE_INT){
+                vm_error("Address offset should have a type INTEGER!");
+                exit(1);
+            }
+
+            store_global(vm, addr.data.u, value);
+
+            break;
+        }
+
         case OP_LOAD_OFF: {
             PrimitiveValue offset = VM_THREAD_POP(thread);
             PrimitiveValue addr = VM_THREAD_POP(thread);
@@ -204,14 +224,14 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
         // CREATE TEST FOR THIS
         // for H_ALLOC
         case OP_HALLOC: {
-            int8_t size = VM_GET_INSTRUCTION(vm, thread->pc);
+            PrimitiveValue size = VM_THREAD_POP(thread);
 
-            uint32_t ptr_val = malloc_heap(thread, size);
+            uint32_t ptr_val = malloc_heap(thread, size.data.u);
 
             PrimitiveValue value = {
                 .type = TYPE_ADDRESS,
                 .word_state = WORD_OPEN,
-                .data = ptr_val
+                .data.u = ptr_val
             };
 
             VM_THREAD_PUSH(thread, value);
@@ -228,6 +248,7 @@ int mem_vm_execute(VM* vm, VM_Thread* thread, uint32_t opcode){
 
                 free_heap(vm, val.data.u);
             }
+            else printf("[SEGMENTATION FAULT] Cannot free memory [REASON: Argument not an address!]\n");
 
             break;
         }

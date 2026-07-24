@@ -37,10 +37,10 @@ public class Assembler {
 
         // Memory (RAM)
         public static final int OPT_MEM = 0x20;
-        public static final int STORE = 0x20, LOAD = 0x21, LOAD_OFF = OPT_MEM | 0x02, MSET = 0x22, ISTORE = 0x23;
-        public static final int FSTORE = 0x24, CSTORE = 0x25, BSTORE = 0x26, HALLOC = 0x27;
-        public static final int HFREE = 0x28, ISTORE_L = 0x2A, FSTORE_L = 0x2B;
-        public static final int CSTORE_L = 0x2C, BSTORE_L = 0x2D, LOAD_L = 0x2E, STORE_L = 0x2F;
+        public static final int STORE = OPT_MEM | 0x00, LOAD = OPT_MEM | 0x01, STORE_OFF = OPT_MEM | 0x02, LOAD_OFF = OPT_MEM | 0x03, ISTORE = OPT_MEM | 0x04;
+        public static final int FSTORE = OPT_MEM | 0x05, CSTORE = OPT_MEM | 0x06, BSTORE = OPT_MEM | 0x07, H_ALLOC = OPT_MEM | 0x08;
+        public static final int H_FREE = OPT_MEM | 0x09, ISTORE_L = OPT_MEM | 0x0A, FSTORE_L = OPT_MEM | 0x0B;
+        public static final int CSTORE_L = OPT_MEM | 0x0C, BSTORE_L = OPT_MEM | 0x0D, LOAD_L = OPT_MEM | 0x0E, STORE_L = OPT_MEM | 0x0F;
 
         // Control Flow & Subroutines
         public static final int JUMP = 0x30, JNZ = 0x31, JZ = 0x32, CMPEQ = 0x33;
@@ -471,13 +471,13 @@ public class Assembler {
             Map.entry("SWAP", Opcode.SWAP), Map.entry("ROT", Opcode.ROT), Map.entry("PEEK", Opcode.PEEK),
             Map.entry("ADD", Opcode.ADD), Map.entry("SUB", Opcode.SUB), Map.entry("MUL", Opcode.MUL),
             Map.entry("DIV", Opcode.DIV), Map.entry("MOD", Opcode.MOD), Map.entry("INC", Opcode.INC),
-            Map.entry("DEC", Opcode.DEC), Map.entry("MSET", Opcode.MSET), Map.entry("HALLOC", Opcode.HALLOC),
-            Map.entry("HFREE", Opcode.HFREE), Map.entry("CMPEQ", Opcode.CMPEQ), Map.entry("CMPNEQ", Opcode.CMPNEQ),
+            Map.entry("DEC", Opcode.DEC), Map.entry("H_ALLOC", Opcode.H_ALLOC),
+            Map.entry("H_FREE", Opcode.H_FREE), Map.entry("CMPEQ", Opcode.CMPEQ), Map.entry("CMPNEQ", Opcode.CMPNEQ),
             Map.entry("CMPLT", Opcode.CMPLT), Map.entry("CMPLE", Opcode.CMPLE), Map.entry("CMPGT", Opcode.CMPGT),
             Map.entry("CMPGE", Opcode.CMPGE), Map.entry("OUT_LN", Opcode.OUT_LN), Map.entry("FOUT", Opcode.FOUT),
             Map.entry("FOUT_LN", Opcode.FOUT_LN), Map.entry("SYS_READ", Opcode.SYS_READ),
             Map.entry("SYS_WRITE", Opcode.SYS_WRITE), Map.entry("RET", Opcode.RET),
-            Map.entry("LOAD_OFF", Opcode.LOAD_OFF), Map.entry("OP_LOAD_OFF", Opcode.LOAD_OFF)
+            Map.entry("STORE_OFF", Opcode.STORE_OFF), Map.entry("LOAD_OFF", Opcode.LOAD_OFF)
         );
 
         for (int lineNum = 1; lineNum <= lines.size(); lineNum++) {

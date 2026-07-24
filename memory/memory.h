@@ -15,7 +15,7 @@ typedef struct {
 
 static inline uint32_t store_global(VM* vm, uint32_t address, PrimitiveValue value) {
 
-    if(mem_is_out_of_bounds(address, GLOBAL_RAM_START, GLOBAL_RAM_SIZE)) {
+    if(mem_is_out_of_bounds(address, 0, VM_RAM_SIZE)) {
         vm_error("SegFault: Global store out of bounds!");
         exit(-1);
     }
@@ -33,7 +33,7 @@ static inline uint32_t store_global(VM* vm, uint32_t address, PrimitiveValue val
 
 static inline PrimitiveValue load_global(VM* vm, uint32_t address) {
 
-    if(mem_is_out_of_bounds(address, GLOBAL_RAM_START, GLOBAL_RAM_SIZE)) {
+    if(mem_is_out_of_bounds(address, 0, VM_RAM_SIZE)) {
         vm_error("SegFault: Global load out of bounds!");
         exit(-1);
     }

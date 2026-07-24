@@ -12,10 +12,10 @@
 
 #define GLOBAL_RAM_SIZE     1024
 #define HEAP_RAM_SIZE       4096
-#define VM_RAM_SIZE         GLOBAL_RAM_SIZE + HEAP_RAM_SIZE
+#define VM_RAM_SIZE         (GLOBAL_RAM_SIZE + HEAP_RAM_SIZE)
 
 #define GLOBAL_RAM_START    0
-#define HEAP_RAM_START      GLOBAL_RAM_SIZE
+#define HEAP_RAM_START      (GLOBAL_RAM_SIZE)
 
 #define CALL_STACK_MEM 64
 #define MAX_HANDLES 64
@@ -117,17 +117,18 @@ typedef enum {
     OP_DEC    = OPT_IMATH | 0x06,
 
     // Memory (RAM)
-    OP_STORE    = OPT_MEM | 0x00,
-    OP_LOAD     = OPT_MEM | 0x01,
-    OP_LOAD_OFF = OPT_MEM | 0x02,
+    OP_STORE        = OPT_MEM | 0x00,
+    OP_LOAD         = OPT_MEM | 0x01,
+    OP_STORE_OFF    = OPT_MEM | 0x02,
+    OP_LOAD_OFF     = OPT_MEM | 0x03,
 
-    OP_ISTORE   = OPT_MEM | 0x03,
-    OP_FSTORE   = OPT_MEM | 0x04,
-    OP_CSTORE   = OPT_MEM | 0x05,
-    OP_BSTORE   = OPT_MEM | 0x06,
+    OP_ISTORE   = OPT_MEM | 0x04,
+    OP_FSTORE   = OPT_MEM | 0x05,
+    OP_CSTORE   = OPT_MEM | 0x06,
+    OP_BSTORE   = OPT_MEM | 0x07,
 
-    OP_HALLOC   = OPT_MEM | 0x07,
-    OP_HFREE    = OPT_MEM | 0x08,
+    OP_HALLOC   = OPT_MEM | 0x08,
+    OP_HFREE    = OPT_MEM | 0x09,
 
     OP_ISTORE_L = OPT_MEM | 0x0A,
     OP_FSTORE_L = OPT_MEM | 0x0B,
