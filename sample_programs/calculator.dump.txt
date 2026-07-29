@@ -1,5 +1,5 @@
 =========================================================================================================
- KDM ASSEMBLER DUMP & SOURCE LISTING (JAVA)
+ GRR ASSEMBLER DUMP & SOURCE LISTING (JAVA)
 =========================================================================================================
  Header Metadata:
    _global_start  : Addr [0x00FF] | 0x000000FF | 00000000 00000000 00000000 11111111
@@ -8,7 +8,7 @@
 =========================================================================================================
 
 ── STATIC MEMORY (RAM Data: ::_data / ::_const_data)──────────────────────────────────────────────────
-Addr   Hex (Type/St/Pad/Data)  Data Binary (32-bit)                  ASCII   Type  State  Source / Element Note
+Addr   Hex (Type/St/Pad/Data)  Data Binary (32-bit)                 ASCII   Type  State  Source / Element Note
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 ── PROGRAM MEMORY (Code Section)──────────────────────────────────────────────────────────────────────

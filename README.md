@@ -28,16 +28,43 @@ GRRVM uses a hybrid Harvard architecture concept with three distinct memory plan
 
 ---
 
+## Installation & Setup for GCC-ARM-NONE-EABI on Linux
+
+```
+sudo apt install cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+git clone https://github.com/raspberrypi/pico-sdk.git ~/.pico-sdk
+export PICO_SDK_PATH=~/.pico-sdk
+wget https://raw.githubusercontent.com/raspberrypi/pico-sdk/master/external/pico_sdk_import.cmake
+export PICO_SDK_PATH=~/pico-sdk
+
+mkdir -p build && cd build
+cmake ..
+make -j$(nproc)
+
+```
+
 ## 🛠️ Building and Running
 
 GRRVM is highly portable and can be compiled with any standard C compiler. It is specifically tested and optimized for **TCC (Tiny C Compiler)**.
+However it now supports GCC as well.
 
 ### Compilation
 
 Compile the multi-file project into a single executable using the build script:
 
 ```bash
-./build.sh
+./build.sh # for TCC
+./build_gcc.sh #for GCC
+
+
+# for Raspberry Pico Compilation
+# only run this once
+mkdir -p build && cd build #if no /build folder yet
+cmake ..
+
+
+# to build for Raspberry Pi Pico
+make -j$(nproc)
 
 ```
 
