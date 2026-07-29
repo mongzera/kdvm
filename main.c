@@ -2,7 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h> // Required for readlink()
+
+// Guard POSIX headers for desktop builds only
+#if !defined(__arm__) && !defined(__embedded__) && !defined(PICO_BOARD)
+    #include <unistd.h> // Required for readlink()
+#else
+    #include "pico/stdlib.h" // Required for stdio_init_all() on RP2040
+#endif
+
 #include "core/grrvm.h"
 
 typedef enum Commands {
@@ -30,8 +37,16 @@ void print_running(const char* msg) {
     printf("[RUNNING] %s\n", msg);
 }
 
-// Dynamically gets the directory where the grrvm binary actually lives
+// Dynamically gets the directory where the grrvm binary lives
 void get_executable_dir(char* buffer, size_t size) {
+    if (!buffer || size == 0) return;
+
+#if defined(__arm__) || defined(__embedded__) || defined(PICO_BOARD)
+    // Bare-metal / Embedded Target (RP2040, Cortex-M)
+    strncpy(buffer, ".", size - 1);
+    buffer[size - 1] = '\0';
+#else
+    // Linux / POSIX PC Target
     ssize_t count = readlink("/proc/self/exe", buffer, size - 1);
     if (count != -1) {
         buffer[count] = '\0';
@@ -40,8 +55,10 @@ void get_executable_dir(char* buffer, size_t size) {
             *last_slash = '\0'; // Truncate filename to leave directory path
         }
     } else {
-        strncpy(buffer, ".", size); // Fallback to current directory
+        strncpy(buffer, ".", size - 1); // Fallback to current directory
+        buffer[size - 1] = '\0';
     }
+#endif
 }
 
 void derive_output_filename(const char* input, char* output, size_t max_len) {
@@ -76,23 +93,26 @@ void command_run_vm(const char* filename) {
     }
     print_done("KDM File Loading...");
 
-    struct timespec start, end;
-
     // Execute
     printf("--- Execution Started ---\n");
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_t start = clock();
     vm_execute(my_machine);
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    printf("--- Execution Halted ---\n");
 
-    // Calculate elapsed time
-    long long elapsed_ns = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
-    printf("Execution time: %lld nanoseconds\n", elapsed_ns);
+    printf("--- Execution Halted ---\n");
+    clock_t end = clock();
+
+    // Calculate elapsed time (fix unit print to seconds)
+    double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Execution time: %f seconds\n", cpu_time_used);
 
     free(my_machine);
 }
 
 void command_compile_vm(int argc, char* argv[]) {
+#if defined(__arm__) || defined(__embedded__) || defined(PICO_BOARD)
+    printf("[ERROR] Cannot invoke Java assembler on bare-metal microcontroller.\n");
+    return;
+#else
     if (argc < 3) {
         printf("[ERROR] Missing input file for compilation.\n");
         print_help(argc, argv);
@@ -103,15 +123,12 @@ void command_compile_vm(int argc, char* argv[]) {
     char output_file[256];
     derive_output_filename(input_file, output_file, sizeof(output_file));
 
-    // 1. Get the directory where grrvm binary resides
     char exe_dir[512];
     get_executable_dir(exe_dir, sizeof(exe_dir));
 
-    // 2. Build absolute path to assembler/assembler.py relative to binary location
     char assembler_path[1024];
     snprintf(assembler_path, sizeof(assembler_path), "%s/assembler/Assembler.java", exe_dir);
 
-    // 3. Construct full shell command
     char command[2048];
     snprintf(command, sizeof(command), "java \"%s\" \"%s\" \"%s\"", assembler_path, input_file, output_file);
 
@@ -123,13 +140,28 @@ void command_compile_vm(int argc, char* argv[]) {
     } else {
         printf("[ERROR] Assembler failed with exit code %d\n", result);
     }
+#endif
 }
 
 int main(int argc, char* argv[]) {
+#if defined(__arm__) || defined(__embedded__) || defined(PICO_BOARD)
+    stdio_init_all();
+    sleep_ms(2000); // Give serial monitor 2s to attach
+
+    printf("\n--- Starting GRRVM on Pico ---\n");
+
+    while (true) {
+        printf("Hello\n");
+    }
+    return 0;
+
+#else
+    // Desktop CLI check
     if (argc < 2) {
         print_help(argc, argv);
         return 1;
     }
+#endif
 
     int command = -1;
 
