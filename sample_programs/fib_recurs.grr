@@ -1,0 +1,40 @@
+::_data
+    word n 35
+
+::base_zero
+    RET            ; JZ popped condition copy; 0 is already on stack
+
+::base_one
+    RET            ; JZ popped condition copy; 1 is already on stack
+
+::fib
+    # --- Check Base Case: n == 0 ---
+    DUP
+    JZ ::base_zero
+
+    # --- Check Base Case: n == 1 ---
+    DUP
+    PUSH -1
+    ADD
+    JZ ::base_one
+
+    # --- Recursive Step: Fib(n-1) + Fib(n-2) ---
+    DUP            # Duplicate 'n' for the first call
+    PUSH -1
+    ADD
+    CALL ::fib     # Returns Fib(n-1) -> Stack: [n, Fib(n-1)]
+
+    SWAP           # Bring original 'n' back to top -> Stack: [Fib(n-1), n]
+    PUSH -2
+    ADD
+    CALL ::fib     # Returns Fib(n-2) -> Stack: [Fib(n-1), Fib(n-2)]
+
+    ADD            # Add results -> Stack: [Fib(n-1) + Fib(n-2)]
+    RET
+
+::_global
+    PUSH $n
+    LOAD           # Push address of n, then load its value onto stack
+    CALL ::fib
+    OUT_LN
+    HALT
